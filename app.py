@@ -38,6 +38,14 @@ def main():
         st.sidebar.error("'Price' column not found in dataset.")
         price_range = (0, 0)  # Or some default value
 
+    # Band Material filter
+    if 'Band Material' in df.columns:
+        band_material_options = df['Band Material'].dropna().unique().tolist()
+        selected_band_materials = st.sidebar.multiselect("Band Material", sorted(band_material_options))
+    else:
+        st.sidebar.error("'Band Material' column not found in dataset.")
+        selected_band_materials = []
+
     # Apply filters
     filtered_df = df.copy()
     if selected_brand != "All":
@@ -45,6 +53,9 @@ def main():
 
     if 'Price' in df.columns:  # Check again before filtering
         filtered_df = filtered_df[(filtered_df['Price'] >= price_range[0]) & (filtered_df['Price'] <= price_range[1])]
+
+    if selected_band_materials:
+        filtered_df = filtered_df[filtered_df['Band Material'].isin(selected_band_materials)]
 
     # Display results
     st.title("🛍️ Product Selector")
@@ -70,7 +81,8 @@ def main():
                 st.write(f"**Model Number:** {row['Model Number']}")
                 st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
                 st.write(f"**Discount:** {row['Discount (%)']}%")
-            st.markdown("---")
+
+    st.markdown("---")
 
 if __name__ == "__main__":
     main()
