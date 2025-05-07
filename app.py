@@ -65,11 +65,12 @@ def main():
                     st.write("Image not available")  # Handle missing images
 
             with col2:
-                st.subheader(f"{row['Product Name']} - ₹{int(row['Price'])}")
-                st.write(f"**Brand:** {row['Brand']}")
-                st.write(f"**Model Number:** {row['Model Number']}")
-                st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
-                st.write(f"**Discount:** {row['Discount (%)']}%")
+                # Use markdown to left align the text
+                st.markdown(f"<h3 style='text-align: left;'>{row['Product Name']} - ₹{int(row['Price'])}</h3>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: left;'>**Brand:** {row['Brand']}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: left;'>**Model Number:** {row['Model Number']}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: left;'>**Rating:** {row['Rating(out of 5)']}/5</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: left;'>**Discount:** {row['Discount (%)']}%</p>", unsafe_allow_html=True)
             st.markdown("---")
 
 if __name__ == "__main__":
