@@ -6,7 +6,7 @@ st.set_page_config(layout="wide")
 # Load product data
 @st.cache_data
 def load_data():
-    return pd.read_excel("Price List_Pair_Single.xlsx") 
+    return pd.read_excel("sourcefile.xlsx") 
 
 df = load_data()
 
