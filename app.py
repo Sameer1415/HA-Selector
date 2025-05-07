@@ -35,6 +35,13 @@ filtered_df = filtered_df[(filtered_df['Price'] >= price_range[0]) & (filtered_d
 # Display results
 st.title("🛍️ Product Selector")
 
+# Clean column names
+df.columns = df.columns.str.strip()
+
+# # Then continue your loop
+# for idx, row in df.iterrows():
+#     st.image(row['Image'], width=200)
+
 if filtered_df.empty:
     st.warning("No products found with selected filters.")
 else:
