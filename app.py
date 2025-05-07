@@ -44,5 +44,5 @@ else:
         st.write(f"**Model Number:** {row['Model Number']}")
         st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
         st.write(f"**Discount:** {row['Discount (%)']}%")
-        st.image(row['ImageURL'], width=200)
+        st.image(row['Image'], width=200)
         st.markdown("---")
