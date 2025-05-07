@@ -56,15 +56,20 @@ def main():
         st.warning("No products found with selected filters.")
     else:
         for _, row in filtered_df.iterrows():
-            st.subheader(f"{row['Product Name']} - ₹{int(row['Price'])}")
-            st.write(f"**Brand:** {row['Brand']}")
-            st.write(f"**Model Number:** {row['Model Number']}")
-            st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
-            st.write(f"**Discount:** {row['Discount (%)']}%")
-            if 'ImageURL' in row and pd.notna(row['ImageURL']):  # Check for column and non-null value
-                st.image(row['ImageURL'], width=200)
-            else:
-                st.write("Image not available")  # Handle missing images
+            col1, col2 = st.columns([1, 2])  # Create two columns with a 1:2 ratio
+
+            with col1:
+                if 'ImageURL' in row and pd.notna(row['ImageURL']):  # Check for column and non-null value
+                    st.image(row['ImageURL'], width=200)
+                else:
+                    st.write("Image not available")  # Handle missing images
+
+            with col2:
+                st.subheader(f"{row['Product Name']} - ₹{int(row['Price'])}")
+                st.write(f"**Brand:** {row['Brand']}")
+                st.write(f"**Model Number:** {row['Model Number']}")
+                st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
+                st.write(f"**Discount:** {row['Discount (%)']}%")
             st.markdown("---")
 
 if __name__ == "__main__":
