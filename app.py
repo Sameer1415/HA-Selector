@@ -1,43 +1,58 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(layout="wide")
-
-# Load product data
+# Load data
 @st.cache_data
 def load_data():
-    return pd.read_excel("sourcefile.xlsx") 
+    df = pd.read_excel('top100_men_filled.xlsx')
+    return df
 
 df = load_data()
 
-# Sidebar Filters
-st.sidebar.header("Filter Products")
-brands = st.sidebar.multiselect("Brand", df["Brand"].dropna().unique())
-price_min, price_max = int(df["Price"].min()), int(df["Price"].max())
-price_range = st.sidebar.slider("Price Range", min_value=price_min, max_value=price_max, value=(price_min, price_max))
-gender = st.sidebar.multiselect("Gender", df["Gender"].dropna().unique())
-movement = st.sidebar.multiselect("Movement", df["Movement"].dropna().unique())
+st.title("🛍️ Product Portal - Top 100 Men Products")
 
-# Filter logic
-filtered_df = df[
-    (df["Price"] >= price_range[0]) & (df["Price"] <= price_range[1])
-]
-if brands:
-    filtered_df = filtered_df[filtered_df["Brand"].isin(brands)]
-if gender:
-    filtered_df = filtered_df[filtered_df["Gender"].isin(gender)]
-if movement:
-    filtered_df = filtered_df[filtered_df["Movement"].isin(movement)]
+# Sidebar filters
+st.sidebar.header("Filter Products")
+
+# Filter: Brand
+if 'Brand' in df.columns:
+    brands = st.sidebar.multiselect("Select Brand(s):", sorted(df['Brand'].dropna().unique()), default=None)
+    if brands:
+        df = df[df['Brand'].isin(brands)]
+
+# Filter: Price
+if 'Price' in df.columns:
+    min_price, max_price = int(df['Price'].min()), int(df['Price'].max())
+    price_range = st.sidebar.slider("Price Range", min_price, max_price, (min_price, max_price))
+    df = df[(df['Price'] >= price_range[0]) & (df['Price'] <= price_range[1])]
+
+# Filter: Rating
+if 'Rating' in df.columns:
+    min_rating, max_rating = float(df['Rating'].min()), float(df['Rating'].max())
+    rating_filter = st.sidebar.slider("Minimum Rating", min_rating, max_rating, min_rating)
+    df = df[df['Rating'] >= rating_filter]
+
+# Filter: Search by name
+if 'Product Name' in df.columns:
+    search_term = st.sidebar.text_input("Search by product name")
+    if search_term:
+        df = df[df['Product Name'].str.contains(search_term, case=False)]
 
 # Display products
-st.markdown(f"### Showing {len(filtered_df)} Products")
-for _, row in filtered_df.iterrows():
-    cols = st.columns([1, 3])
-    with cols[0]:
-        st.image(row["ImageURL"], width=100)
-    with cols[1]:
-        st.markdown(f"**{row['Product Name']}**")
-        st.markdown(f"Brand: {row['Brand']} | Price: ₹{row['Price']} | Ratings: {row.get('Ratings', 'N/A')}")
-        if row.get("URL"):
-            st.markdown(f"[View Product]({row['URL']})")
-    st.markdown("---")
+st.subheader(f"Showing {len(df)} product(s):")
+
+if df.empty:
+    st.warning("No products match your filters.")
+else:
+    for i, row in df.iterrows():
+        st.markdown("---")
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            if 'Image' in df.columns and pd.notna(row['Image']):
+                st.image(row['Image'], width=120)
+        with col2:
+            st.markdown(f"### {row.get('Product Name', 'Unnamed Product')}")
+            st.markdown(f"**Brand**: {row.get('Brand', 'N/A')}")
+            st.markdown(f"**Price**: ₹{row.get('Price', 'N/A')}")
+            st.markdown(f"**Rating**: {row.get('Rating', 'N/A')} ⭐")
+
