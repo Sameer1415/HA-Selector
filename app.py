@@ -4,52 +4,45 @@ import pandas as pd
 # Load data
 @st.cache_data
 def load_data():
-    df = pd.read_excel("sourcefile.xlsx")
+    df = pd.read_excel("top100_men_filled.xlsx")
     return df
 
 df = load_data()
 
-st.title("🛍️ Men's Watches Portal")
-
 # Sidebar filters
 st.sidebar.header("Filter Products")
 
-# Filter: Brand
-brands = st.sidebar.multiselect("Select Brand(s):", sorted(df['Brand'].dropna().unique()))
-if brands:
-    df = df[df['Brand'].isin(brands)]
-
-# Filter: Price
-min_price, max_price = int(df['Price'].min()), int(df['Price'].max())
-price_range = st.sidebar.slider("Price Range", min_price, max_price, (min_price, max_price))
-df = df[(df['Price'] >= price_range[0]) & (df['Price'] <= price_range[1])]
-
-# Filter: Rating
-if 'Rating(out of 5)' in df.columns:
-    min_rating, max_rating = float(df['Rating(out of 5)'].min()), float(df['Rating(out of 5)'].max())
-    rating_filter = st.sidebar.slider("Minimum Rating", min_rating, max_rating, min_rating)
-    df = df[df['Rating(out of 5)'] >= rating_filter]
-
-# Filter: Search by product name
-search_term = st.sidebar.text_input("Search by product name")
-if search_term:
-    df = df[df['Product Name'].str.contains(search_term, case=False)]
-
-# Display products
-st.subheader(f"Showing {len(df)} product(s):")
-
-if df.empty:
-    st.warning("No products match your filters.")
+# Brand filter
+if 'Brand' in df.columns:
+    brand_options = df['Brand'].dropna().unique().tolist()
+    selected_brand = st.sidebar.selectbox("Brand", ["All"] + sorted(brand_options))
 else:
-    for _, row in df.iterrows():
+    st.sidebar.error("'Brand' column not found in dataset.")
+    selected_brand = "All"
+
+# Price filter
+min_price = int(df['Price'].min())
+max_price = int(df['Price'].max())
+price_range = st.sidebar.slider("Price Range", min_price, max_price, (min_price, max_price))
+
+# Apply filters
+filtered_df = df.copy()
+if selected_brand != "All":
+    filtered_df = filtered_df[filtered_df['Brand'] == selected_brand]
+
+filtered_df = filtered_df[(filtered_df['Price'] >= price_range[0]) & (filtered_df['Price'] <= price_range[1])]
+
+# Display results
+st.title("🛍️ Product Selector")
+
+if filtered_df.empty:
+    st.warning("No products found with selected filters.")
+else:
+    for _, row in filtered_df.iterrows():
+        st.subheader(f"{row['Product Name']} - ₹{int(row['Price'])}")
+        st.write(f"**Brand:** {row['Brand']}")
+        st.write(f"**Model Number:** {row['Model Number']}")
+        st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
+        st.write(f"**Discount:** {row['Discount (%)']}%")
+        st.image(row['ImageURL'], width=200)
         st.markdown("---")
-        col1, col2 = st.columns([1, 3])
-        with col1:
-            if pd.notna(row['URL']):
-                st.image(row['URL'], width=120)
-        with col2:
-            st.markdown(f"### {row['Product Name']}")
-            st.markdown(f"**Brand**: {row['Brand']}")
-            st.markdown(f"**Model**: {row['Model Number']}")
-            st.markdown(f"**Price**: ₹{row['Price']}")
-            st.markdown(f"**Rating**: {row['Rating(out of 5)']} ⭐")
