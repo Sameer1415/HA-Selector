@@ -4,56 +4,68 @@ import pandas as pd
 # Load data
 @st.cache_data
 def load_data():
-    df = pd.read_excel("sourcefile.xlsx")
-    return df
+    try:
+        df = pd.read_excel("sourcefile.xlsx")
+        return df
+    except FileNotFoundError:
+        st.error("Error: 'sourcefile.xlsx' not found. Please make sure the file is in the same directory as the script.")
+        return None  # Return None to indicate an error
 
-df = load_data()
+# Main function
+def main():
+    df = load_data()
 
-# Sidebar filters
-st.sidebar.header("Filter Products")
+    if df is None:
+        return  # Stop execution if the data file wasn't found
 
-# Brand filter
-if 'Brand' in df.columns:
-    brand_options = df['Brand'].dropna().unique().tolist()
-    selected_brand = st.sidebar.selectbox("Brand", ["All"] + sorted(brand_options))
-else:
-    st.sidebar.error("'Brand' column not found in dataset.")
-    selected_brand = "All"
+    # Sidebar filters
+    st.sidebar.header("Filter Products")
 
-# Price filter
-min_price = int(df['Price'].min())
-max_price = int(df['Price'].max())
-price_range = st.sidebar.slider("Price Range", min_price, max_price, (min_price, max_price))
+    # Brand filter
+    if 'Brand' in df.columns:
+        brand_options = df['Brand'].dropna().unique().tolist()
+        selected_brand = st.sidebar.selectbox("Brand", ["All"] + sorted(brand_options))
+    else:
+        st.sidebar.error("'Brand' column not found in dataset.")
+        selected_brand = "All"
 
-# Apply filters
-filtered_df = df.copy()
-if selected_brand != "All":
-    filtered_df = filtered_df[filtered_df['Brand'] == selected_brand]
+    # Price filter
+    if 'Price' in df.columns:  # Check if 'Price' column exists
+        min_price = int(df['Price'].min())
+        max_price = int(df['Price'].max())
+        price_range = st.sidebar.slider("Price Range", min_price, max_price, (min_price, max_price))
+    else:
+        st.sidebar.error("'Price' column not found in dataset.")
+        price_range = (0, 0)  # Or some default value
 
-filtered_df = filtered_df[(filtered_df['Price'] >= price_range[0]) & (filtered_df['Price'] <= price_range[1])]
+    # Apply filters
+    filtered_df = df.copy()
+    if selected_brand != "All":
+        filtered_df = filtered_df[filtered_df['Brand'] == selected_brand]
 
-# Display results
-st.title("🛍️ Product Selector")
+    if 'Price' in df.columns:  # Check again before filtering
+        filtered_df = filtered_df[(filtered_df['Price'] >= price_range[0]) & (filtered_df['Price'] <= price_range[1])]
 
-# Clean column names
-df.columns = df.columns.str.strip()
+    # Display results
+    st.title("🛍️ Product Selector")
 
-# Show filtered results
-if filtered_df.empty:
-    st.warning("No products found with selected filters.")
-else:
-    for _, row in filtered_df.iterrows():
-        st.subheader(f"{row['Product Name']} - ₹{int(row['Price'])}")
-        st.write(f"**Brand:** {row['Brand']}")
-        st.write(f"**Model Number:** {row['Model Number']}")
-        st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
-        st.write(f"**Discount:** {row['Discount (%)']}%")
-        
-        # Display image from 'ImageURL' column
-        image_url = row['ImageURL']
-        if pd.notna(image_url):
-            st.image(image_url, width=200)
-        else:
-            st.warning("No image available for this product.")
-        
-        st.markdown("---")
+    # Clean column names
+    df.columns = df.columns.str.strip()
+
+    if filtered_df.empty:
+        st.warning("No products found with selected filters.")
+    else:
+        for _, row in filtered_df.iterrows():
+            st.subheader(f"{row['Product Name']} - ₹{int(row['Price'])}")
+            st.write(f"**Brand:** {row['Brand']}")
+            st.write(f"**Model Number:** {row['Model Number']}")
+            st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
+            st.write(f"**Discount:** {row['Discount (%)']}%")
+            if 'ImageURL' in row and pd.notna(row['ImageURL']):  # Check for column and non-null value
+                st.image(row['ImageURL'], width=200)
+            else:
+                st.write("Image not available")  # Handle missing images
+            st.markdown("---")
+
+if __name__ == "__main__":
+    main()
