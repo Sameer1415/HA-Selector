@@ -38,10 +38,7 @@ st.title("🛍️ Product Selector")
 # Clean column names
 df.columns = df.columns.str.strip()
 
-# # Then continue your loop
-# for idx, row in df.iterrows():
-#     st.image(row['Image'], width=200)
-
+# Show filtered results
 if filtered_df.empty:
     st.warning("No products found with selected filters.")
 else:
@@ -51,5 +48,12 @@ else:
         st.write(f"**Model Number:** {row['Model Number']}")
         st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
         st.write(f"**Discount:** {row['Discount (%)']}%")
-        st.image(row['Image'], width=200)
+        
+        # Display image from 'ImageURL' column
+        image_url = row['ImageURL']
+        if pd.notna(image_url):
+            st.image(image_url, width=200)
+        else:
+            st.warning("No image available for this product.")
+        
         st.markdown("---")
