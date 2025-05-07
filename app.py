@@ -68,7 +68,7 @@ def main():
         filtered_df = filtered_df[filtered_df['Band Material'].isin(selected_band_materials)]
 
     # Display results
-    st.title("🛍️ Product Selector")
+    st.title("🛍️Sameer ka dhanda")
 
     # Clean column names
     df.columns = df.columns.str.strip()
