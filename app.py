@@ -24,10 +24,10 @@ def main():
     # Brand filter
     if 'Brand' in df.columns:
         brand_options = df['Brand'].dropna().unique().tolist()
-        selected_brand = st.sidebar.selectbox("Brand", ["All"] + sorted(brand_options))
+        selected_brands = st.sidebar.multiselect("Brand", sorted(brand_options), default=brand_options)  # Changed to multiselect
     else:
         st.sidebar.error("'Brand' column not found in dataset.")
-        selected_brand = "All"
+        selected_brands = []
 
     # Price filter
     if 'Price' in df.columns:  # Check if 'Price' column exists
@@ -48,8 +48,8 @@ def main():
 
     # Apply filters
     filtered_df = df.copy()
-    if selected_brand != "All":
-        filtered_df = filtered_df[filtered_df['Brand'] == selected_brand]
+    if selected_brands: #change
+        filtered_df = filtered_df[filtered_df['Brand'].isin(selected_brands)] #change
 
     if 'Price' in df.columns:  # Check again before filtering
         filtered_df = filtered_df[(filtered_df['Price'] >= price_range[0]) & (filtered_df['Price'] <= price_range[1])]
