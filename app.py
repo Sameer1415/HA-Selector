@@ -24,8 +24,11 @@ def main():
     # Brand filter
     if 'Brand' in df.columns:
         brand_options = df['Brand'].dropna().unique().tolist()
-        selected_brands = st.sidebar.multiselect("Brand", sorted(brand_options),
-                                                default=brand_options)  # Changed to multiselect
+        selected_brands = []
+        st.sidebar.subheader("Brand")  # Add a subheader for the Brand checkboxes
+        for brand in sorted(brand_options):
+            if st.sidebar.checkbox(brand, value=True):  # Create a checkbox for each brand, default to True
+                selected_brands.append(brand)
     else:
         st.sidebar.error("'Brand' column not found in dataset.")
         selected_brands = []
@@ -43,8 +46,11 @@ def main():
     # Band Material filter
     if 'Band Material' in df.columns:
         band_material_options = df['Band Material'].dropna().unique().tolist()
-        selected_band_materials = st.sidebar.multiselect("Band Material",
-                                                        sorted(band_material_options))
+        selected_band_materials = []
+        st.sidebar.subheader("Band Material") #sub header
+        for material in sorted(band_material_options):
+            if st.sidebar.checkbox(material):
+                selected_band_materials.append(material)
     else:
         st.sidebar.error("'Band Material' column not found in dataset.")
         selected_band_materials = []
