@@ -24,7 +24,8 @@ def main():
     # Brand filter
     if 'Brand' in df.columns:
         brand_options = df['Brand'].dropna().unique().tolist()
-        selected_brands = st.sidebar.multiselect("Brand", sorted(brand_options), default=brand_options)  # Changed to multiselect
+        selected_brands = st.sidebar.multiselect("Brand", sorted(brand_options),
+                                                default=brand_options)  # Changed to multiselect
     else:
         st.sidebar.error("'Brand' column not found in dataset.")
         selected_brands = []
@@ -33,7 +34,8 @@ def main():
     if 'Price' in df.columns:  # Check if 'Price' column exists
         min_price = int(df['Price'].min())
         max_price = int(df['Price'].max())
-        price_range = st.sidebar.slider("Price Range", min_price, max_price, (min_price, max_price))
+        price_range = st.sidebar.slider("Price Range", min_price, max_price,
+                                        (min_price, max_price))
     else:
         st.sidebar.error("'Price' column not found in dataset.")
         price_range = (0, 0)  # Or some default value
@@ -41,18 +43,20 @@ def main():
     # Band Material filter
     if 'Band Material' in df.columns:
         band_material_options = df['Band Material'].dropna().unique().tolist()
-        selected_band_materials = st.sidebar.multiselect("Band Material", sorted(band_material_options))
+        selected_band_materials = st.sidebar.multiselect("Band Material",
+                                                        sorted(band_material_options))
     else:
         st.sidebar.error("'Band Material' column not found in dataset.")
         selected_band_materials = []
 
     # Apply filters
     filtered_df = df.copy()
-    if selected_brands: #change
-        filtered_df = filtered_df[filtered_df['Brand'].isin(selected_brands)] #change
+    if selected_brands:  # change
+        filtered_df = filtered_df[filtered_df['Brand'].isin(selected_brands)]  # change
 
     if 'Price' in df.columns:  # Check again before filtering
-        filtered_df = filtered_df[(filtered_df['Price'] >= price_range[0]) & (filtered_df['Price'] <= price_range[1])]
+        filtered_df = filtered_df[
+            (filtered_df['Price'] >= price_range[0]) & (filtered_df['Price'] <= price_range[1])]
 
     if selected_band_materials:
         filtered_df = filtered_df[filtered_df['Band Material'].isin(selected_band_materials)]
