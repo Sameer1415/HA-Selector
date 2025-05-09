@@ -1,96 +1,74 @@
 import streamlit as st
 import pandas as pd
 
-# Load data
+# ---- Load data ----
 @st.cache_data
 def load_data():
     try:
         df = pd.read_excel("sourcefile.xlsx")
+        df.columns = df.columns.str.strip()  # Clean column names
+        df["Price"] = df["Price"].str.replace(",", "").astype(int)
         return df
     except FileNotFoundError:
-        st.error("Error: 'sourcefile.xlsx' not found. Please make sure the file is in the same directory as the script.")
-        return None  # Return None to indicate an error
+        st.error("Error: 'sourcefile.xlsx' not found.")
+        return None
 
-# Main function
+# ---- Main App ----
 def main():
+    st.set_page_config(page_title="Sameer ka Dhanda", layout="wide")
     df = load_data()
-
     if df is None:
-        return  # Stop execution if the data file wasn't found
+        return
 
-    # Sidebar filters
-    st.sidebar.header("Filter Products")
+    st.title("🩺 Titan Audiology Product Portal")
 
-    # Brand filter
-    if 'Brand' in df.columns:
-        brand_options = df['Brand'].dropna().unique().tolist()
-        selected_brands = []
-        st.sidebar.subheader("Brand")  # Add a subheader for the Brand checkboxes
-        for brand in sorted(brand_options):
-            if st.sidebar.checkbox(brand, value=True):  # Create a checkbox for each brand, default to True
-                selected_brands.append(brand)
-    else:
-        st.sidebar.error("'Brand' column not found in dataset.")
-        selected_brands = []
+    # Sidebar Filters
+    st.sidebar.header("🎛️ Filters")
 
-    # Price filter
-    if 'Price' in df.columns:  # Check if 'Price' column exists
-        min_price = int(df['Price'].min())
-        max_price = int(df['Price'].max())
-        price_range = st.sidebar.slider("Price Range", min_price, max_price,
-                                        (min_price, max_price))
-    else:
-        st.sidebar.error("'Price' column not found in dataset.")
-        price_range = (0, 0)  # Or some default value
+    # Degree of loss
+    loss_options = sorted(df["Degree of loss"].dropna().unique())
+    selected_loss = st.sidebar.multiselect("Degree of Loss", options=loss_options, default=loss_options)
 
-    # Band Material filter
-    if 'Band Material' in df.columns:
-        band_material_options = df['Band Material'].dropna().unique().tolist()
-        selected_band_materials = []
-        st.sidebar.subheader("Band Material") #sub header
-        for material in sorted(band_material_options):
-            if st.sidebar.checkbox(material):
-                selected_band_materials.append(material)
-    else:
-        st.sidebar.error("'Band Material' column not found in dataset.")
-        selected_band_materials = []
+    # Price
+    min_price, max_price = df["Price"].min(), df["Price"].max()
+    selected_price = st.sidebar.slider("Price Range (₹)", min_price, max_price, (min_price, max_price))
 
-    # Apply filters
-    filtered_df = df.copy()
-    if selected_brands:  # change
-        filtered_df = filtered_df[filtered_df['Brand'].isin(selected_brands)]  # change
+    # Features (Checkbox filters)
+    features = ["Bluetooth", "Echo shield", "Tinnitus Manager", "Augmented Focus", "Android and ios Streaming"]
+    selected_features = {}
+    for feature in features:
+        selected_features[feature] = st.sidebar.checkbox(f"Only with {feature}", value=False)
 
-    if 'Price' in df.columns:  # Check again before filtering
-        filtered_df = filtered_df[
-            (filtered_df['Price'] >= price_range[0]) & (filtered_df['Price'] <= price_range[1])]
+    # Filter the data
+    filtered_df = df[
+        df["Degree of loss"].isin(selected_loss) &
+        df["Price"].between(*selected_price)
+    ]
+    for feat, val in selected_features.items():
+        if val:
+            filtered_df = filtered_df[filtered_df[feat] == "YES"]
 
-    if selected_band_materials:
-        filtered_df = filtered_df[filtered_df['Band Material'].isin(selected_band_materials)]
+    # Pagination
+    items_per_page = 12
+    total_pages = (len(filtered_df) - 1) // items_per_page + 1
+    page = st.sidebar.number_input("Page", 1, total_pages, 1)
 
-    # Display results
-    st.title("🛍️Sameer ka dhanda")
-
-    # Clean column names
-    df.columns = df.columns.str.strip()
-
-    if filtered_df.empty:
-        st.warning("No products found with selected filters.")
-    else:
-        for _, row in filtered_df.iterrows():
-            col1, col2 = st.columns([1, 2], gap="medium")  # Create two columns with a 1:2 ratio and a gap
-
-            with col1:
-                if 'ImageURL' in row and pd.notna(row['ImageURL']):  # Check for column and non-null value
-                    st.image(row['ImageURL'], width=200)
-                else:
-                    st.write("Image not available")  # Handle missing images
-
-            with col2:
-                st.subheader(f"{row['Product Name']} - ₹{int(row['Price'])}")
-                st.write(f"**Brand:** {row['Brand']}")
-                st.write(f"**Model Number:** {row['Model Number']}")
-                st.write(f"**Rating:** {row['Rating(out of 5)']}/5")
-                st.write(f"**Discount:** {row['Discount (%)']}%")
+    # Display cards
+    start_idx = (page - 1) * items_per_page
+    end_idx = start_idx + items_per_page
+    for i in range(start_idx, min(end_idx, len(filtered_df)), 3):
+        cols = st.columns(3)
+        for j in range(3):
+            if i + j < len(filtered_df):
+                row = filtered_df.iloc[i + j]
+                with cols[j]:
+                    st.markdown(f"### {row['Model Name']}")
+                    st.write(f"💰 **Price:** ₹{row['Price']}")
+                    st.write(f"🧠 **Degree of Loss:** {row['Degree of loss']}")
+                    st.write(f"🎧 **Channels:** {row['Channels']}")
+                    for feat in features:
+                        emoji = "✅" if row[feat] == "YES" else "❌"
+                        st.write(f"{emoji} {feat}")
 
     st.markdown("---")
 
