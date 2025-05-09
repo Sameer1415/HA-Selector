@@ -13,7 +13,6 @@ def load_data():
         st.error("Error: 'sourcefile.xlsx' not found.")
         return None
 
-
 # ---- Main App ----
 def main():
     st.set_page_config(page_title="Sameer ka Dhanda", layout="wide")
@@ -26,42 +25,49 @@ def main():
     # Sidebar Filters
     st.sidebar.header("🎛️ Filters")
 
-    # Degree of loss
-    loss_options = sorted(df["Degree of loss"].dropna().unique())
-    selected_loss = st.sidebar.multiselect("Degree of Loss", options=loss_options, default=loss_options)
+    # Degree of Loss
+    degree_options = sorted(df["Degree of loss"].dropna().unique())
+    selected_degrees = st.sidebar.multiselect("Degree of Loss", options=degree_options, default=degree_options)
 
-    # Price
-    min_price, max_price = df["Price"].min(), df["Price"].max()
+    # Price Filter
+    min_price, max_price = int(df["Price"].min()), int(df["Price"].max())
     selected_price = st.sidebar.slider("Price Range (₹)", min_price, max_price, (min_price, max_price))
 
-    # Features (Checkbox filters)
+    # Feature Filters
     features = ["Bluetooth", "Echo shield", "Tinnitus Manager", "Augmented Focus", "Android and ios Streaming"]
     selected_features = {}
-    for feature in features:
-        selected_features[feature] = st.sidebar.checkbox(f"Only with {feature}", value=False)
+    for feat in features:
+        selected_features[feat] = st.sidebar.checkbox(f"Only with {feat}", value=False)
 
-    # Filter the data
+    # ---- Apply filters ----
     filtered_df = df[
-        df["Degree of loss"].isin(selected_loss) &
+        df["Degree of loss"].isin(selected_degrees) &
         df["Price"].between(*selected_price)
     ]
-    for feat, val in selected_features.items():
-        if val:
+
+    for feat, checked in selected_features.items():
+        if checked:
             filtered_df = filtered_df[filtered_df[feat] == "YES"]
 
-    # Pagination
+    # ---- Pagination ----
     items_per_page = 12
-    total_pages = (len(filtered_df) - 1) // items_per_page + 1
-    page = st.sidebar.number_input("Page", 1, total_pages, 1)
+    total_pages = (len(filtered_df) - 1) // items_per_page + 1 if len(filtered_df) > 0 else 0
 
-    # Display cards
-    start_idx = (page - 1) * items_per_page
-    end_idx = start_idx + items_per_page
-    for i in range(start_idx, min(end_idx, len(filtered_df)), 3):
+    if total_pages > 0:
+        page = st.sidebar.number_input("Page", 1, total_pages, 1)
+        start_idx = (page - 1) * items_per_page
+        end_idx = start_idx + items_per_page
+        paginated_df = filtered_df.iloc[start_idx:end_idx]
+    else:
+        st.warning("No products match your filters.")
+        paginated_df = pd.DataFrame()
+
+    # ---- Display Product Cards ----
+    for i in range(0, len(paginated_df), 3):
         cols = st.columns(3)
         for j in range(3):
-            if i + j < len(filtered_df):
-                row = filtered_df.iloc[i + j]
+            if i + j < len(paginated_df):
+                row = paginated_df.iloc[i + j]
                 with cols[j]:
                     st.markdown(f"### {row['Model Name']}")
                     st.write(f"💰 **Price:** ₹{row['Price']}")
