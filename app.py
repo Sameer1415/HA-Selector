@@ -42,7 +42,7 @@ def render_sidebar_filters(df):
 
         # YES/NO columns
         elif set(unique_vals).issubset({"YES", "NO"}):
-            if st.sidebar.checkbox(f"Only with {col}", value=False):
+            if st.sidebar.checkbox(f"{col}", value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
         # Categorical dropdown with "All"
