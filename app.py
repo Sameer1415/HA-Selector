@@ -22,7 +22,6 @@ def load_data():
         st.error("❌ Error: 'sourcefile.xlsx' not found.")
         return None
 
-
 # ---- Sidebar Filter Logic ----
 def render_sidebar_filters(df):
     st.sidebar.header("🎛️ Filters")
@@ -57,30 +56,35 @@ def render_sidebar_filters(df):
 
     return filtered_df
 
-
 # ---- Main App ----
 def main():
-    st.set_page_config(page_title="HA Selector", layout="wide")
+    st.set_page_config(page_title="Sameer ka Dhanda", layout="wide")
     df = load_data()
     if df is None:
         return
 
-    st.title("🩺 Titan Audiology Product Portal")
-
+    st.title("Titan HA Products")
     filtered_df = render_sidebar_filters(df)
 
-    # Pagination logic
-    items_per_page = 8  # Show max 8 products per screen
+    # Pagination setup
+    items_per_page = 8
     total_pages = (len(filtered_df) - 1) // items_per_page + 1 if len(filtered_df) > 0 else 0
-    page = 1
 
-    if total_pages > 0:
-        start_idx = (page - 1) * items_per_page
-        end_idx = start_idx + items_per_page
-        paginated_df = filtered_df.iloc[start_idx:end_idx]
-    else:
+    if "current_page" not in st.session_state:
+        st.session_state.current_page = 1
+
+    if st.session_state.current_page > total_pages:
+        st.session_state.current_page = total_pages
+    if st.session_state.current_page < 1:
+        st.session_state.current_page = 1
+
+    start_idx = (st.session_state.current_page - 1) * items_per_page
+    end_idx = start_idx + items_per_page
+    paginated_df = filtered_df.iloc[start_idx:end_idx]
+
+    if paginated_df.empty:
         st.warning("No products match your filters.")
-        paginated_df = pd.DataFrame()
+        return
 
     # ---- Product Display ----
     for i in range(0, len(paginated_df), 2):
@@ -120,12 +124,23 @@ def main():
 
                     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ---- Page Number Selector at Bottom ----
+    # ---- Page Navigation ----
     if total_pages > 1:
-        page = st.number_input("📄 Page", min_value=1, max_value=total_pages, value=1, key="page_selector")
-        start_idx = (page - 1) * items_per_page
-        end_idx = start_idx + items_per_page
-        paginated_df = filtered_df.iloc[start_idx:end_idx]
+        st.markdown("### 📄 Pages:")
+        nav_cols = st.columns(min(total_pages + 2, 10))  # Show up to 7 page numbers + prev/next
+
+        # Previous button
+        if nav_cols[0].button("⬅️ Prev", disabled=(st.session_state.current_page == 1)):
+            st.session_state.current_page -= 1
+
+        # Page number buttons
+        for i in range(1, min(total_pages + 1, 8)):
+            if nav_cols[i].button(str(i), disabled=(i == st.session_state.current_page)):
+                st.session_state.current_page = i
+
+        # Next button
+        if nav_cols[-1].button("Next ➡️", disabled=(st.session_state.current_page == total_pages)):
+            st.session_state.current_page += 1
 
 if __name__ == "__main__":
     main()
