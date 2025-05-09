@@ -22,30 +22,30 @@ def render_sidebar_filters(df):
         if col.lower() == "model name":
             continue  # Skip identifying fields like model name
 
-        unique_vals = sorted(df[col].dropna().unique())
+        unique_vals = sorted(df[col].dropna().astype(str).unique())
 
-        # Numeric Filters (e.g., Price)
+        # Numeric Filters
         if pd.api.types.is_numeric_dtype(df[col]):
             min_val, max_val = int(df[col].min()), int(df[col].max())
             selected_range = st.sidebar.slider(f"{col}", min_val, max_val, (min_val, max_val))
             filtered_df = filtered_df[filtered_df[col].between(*selected_range)]
 
-        # YES/NO binary columns
+        # YES/NO Columns
         elif set(unique_vals).issubset({"YES", "NO"}):
             if st.sidebar.checkbox(f"Only with {col}", value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        # Text columns
+        # Categorical Filters
         elif len(unique_vals) == 1:
             continue  # Skip single-value columns
 
         elif len(unique_vals) <= 10:
             selected = st.sidebar.multiselect(f"{col}", options=unique_vals, default=unique_vals)
-            filtered_df = filtered_df[filtered_df[col].isin(selected)]
+            filtered_df = filtered_df[filtered_df[col].astype(str).isin(selected)]
 
         else:
             selected = st.sidebar.selectbox(f"{col}", options=unique_vals)
-            filtered_df = filtered_df[filtered_df[col] == selected]
+            filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
 
     return filtered_df
 
@@ -58,10 +58,10 @@ def main():
 
     st.title("🩺 Titan Audiology Product Portal")
 
-    # Apply dynamic sidebar filters
+    # Apply sidebar filters
     filtered_df = render_sidebar_filters(df)
 
-    # Pagination setup
+    # Pagination
     items_per_page = 12
     total_pages = (len(filtered_df) - 1) // items_per_page + 1 if len(filtered_df) > 0 else 0
 
@@ -74,7 +74,7 @@ def main():
         st.warning("No products match your filters.")
         paginated_df = pd.DataFrame()
 
-    # Display product cards in 3 columns
+    # Display product cards in 3-column layout
     for i in range(0, len(paginated_df), 3):
         cols = st.columns(3)
         for j in range(3):
@@ -86,9 +86,10 @@ def main():
                     for col in df.columns:
                         if col not in ["Model Name", "Price"]:
                             value = row[col]
-                            if str(value).strip().upper() == "YES":
+                            value_str = str(value).strip().upper()
+                            if value_str == "YES":
                                 st.write(f"✅ **{col}**")
-                            elif str(value).strip().upper() == "NO":
+                            elif value_str == "NO":
                                 st.write(f"❌ **{col}**")
                             else:
                                 st.write(f"**{col}:** {value}")
