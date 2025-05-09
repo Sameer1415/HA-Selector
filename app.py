@@ -30,36 +30,33 @@ def render_sidebar_filters(df):
 
     for col in df.columns:
         if col.lower() == "model name":
-            continue  # Skip identifier
+            continue
 
         unique_vals = sorted(df[col].dropna().astype(str).unique())
 
-        # Numeric column
         if pd.api.types.is_numeric_dtype(df[col]):
             min_val, max_val = int(df[col].min()), int(df[col].max())
             selected_range = st.sidebar.slider(f"{col}", min_val, max_val, (min_val, max_val))
             filtered_df = filtered_df[filtered_df[col].between(*selected_range)]
 
-        # YES/NO columns
         elif set(unique_vals).issubset({"YES", "NO"}):
             if st.sidebar.checkbox(f"{col}", value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        # Categorical dropdown with "All"
         elif len(unique_vals) <= 10:
             options = ["All"] + unique_vals
             selected = st.sidebar.selectbox(f"{col}", options=options)
             if selected != "All":
-                filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
+                filtered_df = filtered_df[filtered_df[col] == selected]
 
-        # Longer dropdown fallback
         else:
             options = ["All"] + unique_vals
             selected = st.sidebar.selectbox(f"{col}", options=options)
             if selected != "All":
-                filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
+                filtered_df = filtered_df[filtered_df[col] == selected]
 
     return filtered_df
+
 
 # ---- Main App ----
 def main():
@@ -72,21 +69,20 @@ def main():
 
     filtered_df = render_sidebar_filters(df)
 
-    # Pagination
-    items_per_page = 12
+    # Pagination logic
+    items_per_page = 8  # Show max 8 products per screen
     total_pages = (len(filtered_df) - 1) // items_per_page + 1 if len(filtered_df) > 0 else 0
+    page = 1
 
     if total_pages > 0:
-        page = st.sidebar.number_input("📄 Page", 1, total_pages, 1)
         start_idx = (page - 1) * items_per_page
         end_idx = start_idx + items_per_page
-        paginated_df = filtered_df.iloc[start_idx:end_idx].head(8)
-
+        paginated_df = filtered_df.iloc[start_idx:end_idx]
     else:
         st.warning("No products match your filters.")
         paginated_df = pd.DataFrame()
 
-    # ---- Product Display: 2-column styled card layout ----
+    # ---- Product Display ----
     for i in range(0, len(paginated_df), 2):
         cols = st.columns(2)
         for j in range(2):
@@ -108,11 +104,10 @@ def main():
                             <p><strong>Quantity:</strong> {row['Quantity']}</p>
                             <p><strong>Degree of loss:</strong> {row['Degree of loss']}</p>
                             <p><strong>Channels:</strong> {row['Channels']}</p>
-                    """,
+                        """,
                         unsafe_allow_html=True
                     )
 
-                    # YES/NO or other features
                     for col in df.columns:
                         if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels"]:
                             value = str(row[col]).strip().upper()
@@ -124,6 +119,13 @@ def main():
                                 st.markdown(f"<p><strong>{col}:</strong> {row[col]}</p>", unsafe_allow_html=True)
 
                     st.markdown("</div>", unsafe_allow_html=True)
+
+    # ---- Page Number Selector at Bottom ----
+    if total_pages > 1:
+        page = st.number_input("📄 Page", min_value=1, max_value=total_pages, value=1, key="page_selector")
+        start_idx = (page - 1) * items_per_page
+        end_idx = start_idx + items_per_page
+        paginated_df = filtered_df.iloc[start_idx:end_idx]
 
 if __name__ == "__main__":
     main()
