@@ -22,7 +22,7 @@ def render_sidebar_filters(df):
         if col.lower() == "model name":
             continue  # Skip identifying fields like model name
 
-        unique_vals = df[col].dropna().unique()
+        unique_vals = sorted(df[col].dropna().unique())
 
         # Numeric Filters (e.g., Price)
         if pd.api.types.is_numeric_dtype(df[col]):
@@ -35,10 +35,17 @@ def render_sidebar_filters(df):
             if st.sidebar.checkbox(f"Only with {col}", value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        # Categorical columns with small unique value set
-        elif len(unique_vals) <= 15:
-            selected = st.sidebar.multiselect(f"{col}", options=sorted(unique_vals), default=sorted(unique_vals))
+        # Text columns
+        elif len(unique_vals) == 1:
+            continue  # Skip single-value columns
+
+        elif len(unique_vals) <= 10:
+            selected = st.sidebar.multiselect(f"{col}", options=unique_vals, default=unique_vals)
             filtered_df = filtered_df[filtered_df[col].isin(selected)]
+
+        else:
+            selected = st.sidebar.selectbox(f"{col}", options=unique_vals)
+            filtered_df = filtered_df[filtered_df[col] == selected]
 
     return filtered_df
 
@@ -77,7 +84,7 @@ def main():
                     st.markdown(f"### {row['Model Name']}")
                     st.write(f"💰 **Price:** ₹{row['Price']}")
                     for col in df.columns:
-                        if col != "Model Name" and col != "Price":
+                        if col not in ["Model Name", "Price"]:
                             value = row[col]
                             if str(value).strip().upper() == "YES":
                                 st.write(f"✅ **{col}**")
