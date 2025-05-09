@@ -20,11 +20,11 @@ def render_sidebar_filters(df):
 
     for col in df.columns:
         if col.lower() == "model name":
-            continue  # Skip product identifier
+            continue  # Skip identifier
 
         unique_vals = sorted(df[col].dropna().astype(str).unique())
 
-        # Numeric Filters (e.g., Price)
+        # Numeric column
         if pd.api.types.is_numeric_dtype(df[col]):
             min_val, max_val = int(df[col].min()), int(df[col].max())
             selected_range = st.sidebar.slider(f"{col}", min_val, max_val, (min_val, max_val))
@@ -35,17 +35,17 @@ def render_sidebar_filters(df):
             if st.sidebar.checkbox(f"Only with {col}", value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        # Short Categorical Columns (dropdown with All)
+        # Dropdown with "All"
         elif len(unique_vals) <= 10:
             options = ["All"] + unique_vals
-            selected = st.sidebar.selectbox(f"{col}", options=options, index=0)
+            selected = st.sidebar.selectbox(f"{col}", options=options)
             if selected != "All":
                 filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
 
-        # Long list → fallback to selectbox
+        # Longer dropdown fallback
         else:
             options = ["All"] + unique_vals
-            selected = st.sidebar.selectbox(f"{col}", options=options, index=0)
+            selected = st.sidebar.selectbox(f"{col}", options=options)
             if selected != "All":
                 filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
 
@@ -53,14 +53,13 @@ def render_sidebar_filters(df):
 
 # ---- Main App ----
 def main():
-    st.set_page_config(page_title="HA Selector", layout="wide")
+    st.set_page_config(page_title="Sameer ka Dhanda", layout="wide")
     df = load_data()
     if df is None:
         return
 
     st.title("🩺 Titan Audiology Product Portal")
 
-    # Apply dynamic sidebar filters
     filtered_df = render_sidebar_filters(df)
 
     # Pagination
@@ -76,27 +75,30 @@ def main():
         st.warning("No products match your filters.")
         paginated_df = pd.DataFrame()
 
-    # Display product cards in 3-column layout
-    for i in range(0, len(paginated_df), 3):
-        cols = st.columns(3)
-        for j in range(3):
+    # ---- Product Display: 2 per row ----
+    for i in range(0, len(paginated_df), 2):
+        cols = st.columns(2)
+        for j in range(2):
             if i + j < len(paginated_df):
                 row = paginated_df.iloc[i + j]
                 with cols[j]:
                     st.markdown(f"### {row['Model Name']}")
                     st.write(f"💰 **Price:** ₹{row['Price']}")
+                    st.write(f"**Quantity:** {row['Quantity']}")
+                    st.write(f"**Degree of loss:** {row['Degree of loss']}")
+                    st.write(f"**Channels:** {row['Channels']}")
+
                     for col in df.columns:
-                        if col not in ["Model Name", "Price"]:
+                        if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels"]:
                             value = row[col]
                             value_str = str(value).strip().upper()
                             if value_str == "YES":
-                                st.write(f"✅ **{col}**")
+                                st.markdown(f"<span style='color:green'>✅ {col}</span>", unsafe_allow_html=True)
                             elif value_str == "NO":
-                                st.write(f"❌ **{col}**")
+                                st.markdown(f"<span style='color:red'>❌ {col}</span>", unsafe_allow_html=True)
                             else:
                                 st.write(f"**{col}:** {value}")
-
-    st.markdown("---")
+        st.markdown("---")
 
 if __name__ == "__main__":
     main()
