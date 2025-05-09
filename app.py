@@ -27,15 +27,15 @@ def render_sidebar_filters(df):
     st.sidebar.header("🎛️ Filters")
     filtered_df = df.copy()
 
-    # Ensure key columns appear in desired order
+    # Map uppercase to actual DataFrame column names
+    df_columns_upper = {col.upper(): col for col in df.columns}
+
     preferred_order = ["QUANTITY", "DEGREE OF LOSS", "CHANNELS"]
-    other_columns = [col for col in df.columns if col.upper() not in preferred_order and col.upper() != "MODEL NAME"]
-    filter_order = preferred_order + other_columns
+    ordered_cols = [df_columns_upper[col] for col in preferred_order if col in df_columns_upper]
+    other_columns = [col for col in df.columns if col not in ordered_cols and col.upper() != "MODEL NAME"]
+    filter_order = ordered_cols + other_columns
 
     for col in filter_order:
-        if col not in df.columns:
-            continue
-
         unique_vals = sorted(df[col].dropna().astype(str).unique())
 
         if pd.api.types.is_numeric_dtype(df[col]):
@@ -60,6 +60,7 @@ def render_sidebar_filters(df):
                 filtered_df = filtered_df[filtered_df[col] == selected]
 
     return filtered_df
+
 
 # ---- Main App ----
 def main():
