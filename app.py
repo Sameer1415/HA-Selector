@@ -35,7 +35,7 @@ def render_sidebar_filters(df):
             if st.sidebar.checkbox(f"Only with {col}", value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        # Dropdown with "All"
+        # Categorical dropdown with "All"
         elif len(unique_vals) <= 10:
             options = ["All"] + unique_vals
             selected = st.sidebar.selectbox(f"{col}", options=options)
@@ -75,9 +75,7 @@ def main():
         st.warning("No products match your filters.")
         paginated_df = pd.DataFrame()
 
-    # ---- Product Display: 2 per row ----
-    for i in range(0, len(paginated_df), 2):
-    # Display product cards in 2-column layout with card styling
+    # ---- Product Display: 2-column styled card layout ----
     for i in range(0, len(paginated_df), 2):
         cols = st.columns(2)
         for j in range(2):
@@ -103,7 +101,7 @@ def main():
                         unsafe_allow_html=True
                     )
 
-                    # YES/NO features
+                    # YES/NO or other features
                     for col in df.columns:
                         if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels"]:
                             value = str(row[col]).strip().upper()
@@ -115,7 +113,6 @@ def main():
                                 st.markdown(f"<p><strong>{col}:</strong> {row[col]}</p>", unsafe_allow_html=True)
 
                     st.markdown("</div>", unsafe_allow_html=True)
-
 
 if __name__ == "__main__":
     main()
