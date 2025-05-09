@@ -132,7 +132,7 @@ def main():
 
     # ---- Flipkart-style Pagination ----
     if total_pages > 1:
-        st.markdown("### 📄 Pages:")
+        # st.markdown("### 📄 Pages:")
         nav_cols = st.columns(min(total_pages + 2, 10))  # Show up to 7 numbered buttons
 
         if nav_cols[0].button("⬅️ Prev", disabled=(st.session_state.current_page == 1)):
