@@ -126,7 +126,7 @@ def main():
 
     # ---- Page Navigation ----
     if total_pages > 1:
-        st.markdown("### 📄 Pages:")
+        #st.markdown("### 📄 Pages:")
         nav_cols = st.columns(min(total_pages + 2, 10))  # Show up to 7 page numbers + prev/next
 
         # Previous button
