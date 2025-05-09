@@ -27,8 +27,13 @@ def render_sidebar_filters(df):
     st.sidebar.header("🎛️ Filters")
     filtered_df = df.copy()
 
-    for col in df.columns:
-        if col.lower() == "model name":
+    # Ensure key columns appear in desired order
+    preferred_order = ["QUANTITY", "DEGREE OF LOSS", "CHANNELS"]
+    other_columns = [col for col in df.columns if col.upper() not in preferred_order and col.upper() != "MODEL NAME"]
+    filter_order = preferred_order + other_columns
+
+    for col in filter_order:
+        if col not in df.columns:
             continue
 
         unique_vals = sorted(df[col].dropna().astype(str).unique())
@@ -124,21 +129,18 @@ def main():
 
                     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ---- Page Navigation ----
+    # ---- Flipkart-style Pagination ----
     if total_pages > 1:
-        #st.markdown("### 📄 Pages:")
-        nav_cols = st.columns(min(total_pages + 2, 10))  # Show up to 7 page numbers + prev/next
+        st.markdown("### 📄 Pages:")
+        nav_cols = st.columns(min(total_pages + 2, 10))  # Show up to 7 numbered buttons
 
-        # Previous button
         if nav_cols[0].button("⬅️ Prev", disabled=(st.session_state.current_page == 1)):
             st.session_state.current_page -= 1
 
-        # Page number buttons
         for i in range(1, min(total_pages + 1, 8)):
             if nav_cols[i].button(str(i), disabled=(i == st.session_state.current_page)):
                 st.session_state.current_page = i
 
-        # Next button
         if nav_cols[-1].button("Next ➡️", disabled=(st.session_state.current_page == total_pages)):
             st.session_state.current_page += 1
 
