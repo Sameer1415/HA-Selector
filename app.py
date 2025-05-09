@@ -80,7 +80,8 @@ def main():
         page = st.sidebar.number_input("📄 Page", 1, total_pages, 1)
         start_idx = (page - 1) * items_per_page
         end_idx = start_idx + items_per_page
-        paginated_df = filtered_df.iloc[start_idx:end_idx]
+        paginated_df = filtered_df.iloc[start_idx:end_idx].head(8)
+
     else:
         st.warning("No products match your filters.")
         paginated_df = pd.DataFrame()
