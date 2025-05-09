@@ -60,7 +60,7 @@ def render_sidebar_filters(df):
 
 # ---- Main App ----
 def main():
-    st.set_page_config(page_title="Sameer ka Dhanda", layout="wide")
+    st.set_page_config(page_title="HA Selector", layout="wide")
     df = load_data()
     if df is None:
         return
