@@ -7,11 +7,12 @@ def load_data():
     try:
         df = pd.read_excel("sourcefile.xlsx")
         df.columns = df.columns.str.strip()  # Clean column names
-        df["Price"] = df["Price"].str.replace(",", "").astype(int)
+        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
         return df
     except FileNotFoundError:
         st.error("Error: 'sourcefile.xlsx' not found.")
         return None
+
 
 # ---- Main App ----
 def main():
