@@ -7,11 +7,21 @@ def load_data():
     try:
         df = pd.read_excel("sourcefile.xlsx")
         df.columns = df.columns.str.strip()
-        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
+
+        # Convert Price
+        df["Price"] = pd.to_numeric(
+            df["Price"].astype(str).str.replace(",", ""), errors="coerce"
+        ).fillna(0).astype(int)
+
+        # Standardize string values to uppercase
+        for col in df.select_dtypes(include="object").columns:
+            df[col] = df[col].astype(str).str.strip().str.upper()
+
         return df
     except FileNotFoundError:
         st.error("❌ Error: 'sourcefile.xlsx' not found.")
         return None
+
 
 # ---- Sidebar Filter Logic ----
 def render_sidebar_filters(df):
