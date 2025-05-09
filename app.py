@@ -20,32 +20,34 @@ def render_sidebar_filters(df):
 
     for col in df.columns:
         if col.lower() == "model name":
-            continue  # Skip identifying fields like model name
+            continue  # Skip product identifier
 
         unique_vals = sorted(df[col].dropna().astype(str).unique())
 
-        # Numeric Filters
+        # Numeric Filters (e.g., Price)
         if pd.api.types.is_numeric_dtype(df[col]):
             min_val, max_val = int(df[col].min()), int(df[col].max())
             selected_range = st.sidebar.slider(f"{col}", min_val, max_val, (min_val, max_val))
             filtered_df = filtered_df[filtered_df[col].between(*selected_range)]
 
-        # YES/NO Columns
+        # YES/NO columns
         elif set(unique_vals).issubset({"YES", "NO"}):
             if st.sidebar.checkbox(f"Only with {col}", value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        # Categorical Filters
-        elif len(unique_vals) == 1:
-            continue  # Skip single-value columns
-
+        # Short Categorical Columns (dropdown with All)
         elif len(unique_vals) <= 10:
-            selected = st.sidebar.multiselect(f"{col}", options=unique_vals, default=unique_vals)
-            filtered_df = filtered_df[filtered_df[col].astype(str).isin(selected)]
+            options = ["All"] + unique_vals
+            selected = st.sidebar.selectbox(f"{col}", options=options, index=0)
+            if selected != "All":
+                filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
 
+        # Long list → fallback to selectbox
         else:
-            selected = st.sidebar.selectbox(f"{col}", options=unique_vals)
-            filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
+            options = ["All"] + unique_vals
+            selected = st.sidebar.selectbox(f"{col}", options=options, index=0)
+            if selected != "All":
+                filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
 
     return filtered_df
 
@@ -58,7 +60,7 @@ def main():
 
     st.title("🩺 Titan Audiology Product Portal")
 
-    # Apply sidebar filters
+    # Apply dynamic sidebar filters
     filtered_df = render_sidebar_filters(df)
 
     # Pagination
