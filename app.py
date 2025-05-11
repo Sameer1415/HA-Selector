@@ -50,10 +50,18 @@ def render_sidebar_filters(df):
             filtered_df = filtered_df[filtered_df[col] == selected]
 
         # ---- Numeric sliders ----
-        elif pd.api.types.is_numeric_dtype(df[col]):
-            min_val, max_val = int(df[col].min()), int(df[col].max())
-            selected_range = st.sidebar.slider(label, min_val, max_val, (min_val, max_val))
-            filtered_df = filtered_df[filtered_df[col].between(*selected_range)]
+        elif col.upper() == "PRICE":
+            price_bucket = st.sidebar.radio(
+                "Price Range",
+                options=["30K – 1 Lakh", "1 Lakh – 3 Lakhs", "3 Lakhs+"],
+                horizontal=False
+            )
+            if price_bucket == "30K – 1 Lakh":
+                filtered_df = filtered_df[(df[col] >= 30000) & (df[col] < 100000)]
+            elif price_bucket == "1 Lakh – 3 Lakhs":
+                filtered_df = filtered_df[(df[col] >= 100000) & (df[col] < 300000)]
+            else:
+                filtered_df = filtered_df[df[col] >= 300000]
 
         # ---- YES/NO checkboxes ----
         elif set(unique_vals).issubset({"YES", "NO"}):
