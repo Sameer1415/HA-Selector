@@ -121,7 +121,8 @@ def main():
             st.session_state.selected_model = model
 
     if "selected_model" not in st.session_state or st.session_state.selected_model not in model_names:
-        st.session_state.selected_model = model_names[0]
+        return  # Do not show any product until a model is clicked
+
 
     # ---- Display Selected Product ----
     model_row = group_df[group_df["Model Name"] == st.session_state.selected_model].iloc[0]
