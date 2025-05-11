@@ -129,10 +129,9 @@ def main():
                             box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
                         ">
                             <h4 style="margin-bottom: 10px;">{row['Model Name']}</h4>
-                            <p>💰 <strong>Price:</strong> ₹{row['Price']}</p>
                             <p><strong>Quantity:</strong> {row['Quantity']}</p>
-                            <p><strong>Degree of loss:</strong> {row['Degree of loss']}</p>
                             <p><strong>Channels:</strong> {row['Channels']}</p>
+                            <p><strong>Price:</strong> ₹{row['Price']}</p>
                         """,
                         unsafe_allow_html=True
                     )
