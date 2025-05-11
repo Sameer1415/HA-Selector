@@ -113,48 +113,48 @@ def main():
 
     # ---- Product Display ----
 # ---- Grouped Product Display by Model Prefix ----
-paginated_df["Model Group"] = paginated_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
-
-for group in sorted(paginated_df["Model Group"].unique()):
-    group_df = paginated_df[paginated_df["Model Group"] == group]
-
-    with st.expander(f"{group} Models", expanded=True):
-        for i in range(0, len(group_df), 2):
-            cols = st.columns(2)
-            for j in range(2):
-                if i + j < len(group_df):
-                    row = group_df.iloc[i + j]
-                    with cols[j]:
-                        st.markdown(
-                            f"""
-                            <div style="
-                                border: 1px solid #ccc;
-                                border-radius: 10px;
-                                padding: 20px;
-                                margin-bottom: 10px;
-                                background-color: #f9f9f9;
-                                box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
-                            ">
-                                <h4 style="margin-bottom: 10px;">{row['Model Name']}</h4>
-                                <p>💰 <strong>Price:</strong> ₹{row['Price']}</p>
-                                <p><strong>Quantity:</strong> {row['Quantity']}</p>
-                                <p><strong>Requirement:</strong> {row['Degree of loss']}</p>
-                                <p><strong>Channels:</strong> {row['Channels']}</p>
-                            """,
-                            unsafe_allow_html=True
-                        )
-
-                        for col in df.columns:
-                            if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels"]:
-                                value = str(row[col]).strip().upper()
-                                if value == "YES":
-                                    st.markdown(f"<p style='color:green;'>✅ {col}</p>", unsafe_allow_html=True)
-                                elif value == "NO":
-                                    st.markdown(f"<p style='color:red;'>❌ {col}</p>", unsafe_allow_html=True)
-                                else:
-                                    st.markdown(f"<p><strong>{col}:</strong> {row[col]}</p>", unsafe_allow_html=True)
-
-                        st.markdown("</div>", unsafe_allow_html=True)
+    paginated_df["Model Group"] = paginated_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
+    
+    for group in sorted(paginated_df["Model Group"].unique()):
+        group_df = paginated_df[paginated_df["Model Group"] == group]
+    
+        with st.expander(f"{group} Models", expanded=True):
+            for i in range(0, len(group_df), 2):
+                cols = st.columns(2)
+                for j in range(2):
+                    if i + j < len(group_df):
+                        row = group_df.iloc[i + j]
+                        with cols[j]:
+                            st.markdown(
+                                f"""
+                                <div style="
+                                    border: 1px solid #ccc;
+                                    border-radius: 10px;
+                                    padding: 20px;
+                                    margin-bottom: 10px;
+                                    background-color: #f9f9f9;
+                                    box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+                                ">
+                                    <h4 style="margin-bottom: 10px;">{row['Model Name']}</h4>
+                                    <p>💰 <strong>Price:</strong> ₹{row['Price']}</p>
+                                    <p><strong>Quantity:</strong> {row['Quantity']}</p>
+                                    <p><strong>Requirement:</strong> {row['Degree of loss']}</p>
+                                    <p><strong>Channels:</strong> {row['Channels']}</p>
+                                """,
+                                unsafe_allow_html=True
+                            )
+    
+                            for col in df.columns:
+                                if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels"]:
+                                    value = str(row[col]).strip().upper()
+                                    if value == "YES":
+                                        st.markdown(f"<p style='color:green;'>✅ {col}</p>", unsafe_allow_html=True)
+                                    elif value == "NO":
+                                        st.markdown(f"<p style='color:red;'>❌ {col}</p>", unsafe_allow_html=True)
+                                    else:
+                                        st.markdown(f"<p><strong>{col}:</strong> {row[col]}</p>", unsafe_allow_html=True)
+    
+                            st.markdown("</div>", unsafe_allow_html=True)
 
     # ---- Flipkart-style Pagination ----
     if total_pages > 1:
