@@ -41,44 +41,44 @@ def render_sidebar_filters(df):
     filter_order = ordered_cols + other_columns
 
     for col in filter_order:
-        unique_vals = sorted(df[col].dropna().astype(str).unique())
+        unique_vals = sorted(filtered_df[col].dropna().astype(str).unique())
         label = "REQUIREMENT" if col.upper() == "DEGREE OF LOSS" else col
 
-        # ---- Quantity as horizontal radio ----
         if col.upper() == "QUANTITY":
             selected = st.sidebar.radio("Quantity", options=unique_vals, horizontal=True)
             filtered_df = filtered_df[filtered_df[col] == selected]
 
-        # ---- Numeric sliders ----
         elif col.upper() == "PRICE":
             price_bucket = st.sidebar.radio(
                 "Price Range",
-                options=["30,000 – 1,00,000", "1,00,000 – 3,00,000", "3,00,000+"],
+                options=[
+                    "30,000 – 1,00,000",
+                    "1,00,000 – 3,00,000",
+                    "3,00,000+"
+                ],
                 horizontal=False
             )
-            if price_bucket == "30K – 1 Lakh":
-                filtered_df = filtered_df[(df[col] >= 30000) & (df[col] < 100000)]
-            elif price_bucket == "1 Lakh – 3 Lakhs":
-                filtered_df = filtered_df[(df[col] >= 100000) & (df[col] < 300000)]
-            else:
-                filtered_df = filtered_df[df[col] >= 300000]
+            if price_bucket == "30,000 – 1,00,000":
+                filtered_df = filtered_df[(filtered_df[col] >= 30000) & (filtered_df[col] < 100000)]
+            elif price_bucket == "1,00,000 – 3,00,000":
+                filtered_df = filtered_df[(filtered_df[col] >= 100000) & (filtered_df[col] < 300000)]
+            elif price_bucket == "3,00,000+":
+                filtered_df = filtered_df[filtered_df[col] >= 300000]
 
-        # ---- YES/NO checkboxes ----
         elif set(unique_vals).issubset({"YES", "NO"}):
             if st.sidebar.checkbox(label, value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        # ---- Dropdown for short categories (without "All") ----
         elif len(unique_vals) <= 10:
             selected = st.sidebar.selectbox(label, options=unique_vals)
             filtered_df = filtered_df[filtered_df[col] == selected]
 
-        # ---- Long category fallback ----
         else:
             selected = st.sidebar.selectbox(label, options=unique_vals)
             filtered_df = filtered_df[filtered_df[col] == selected]
 
     return filtered_df
+
 
 
 # ---- Main App ----
