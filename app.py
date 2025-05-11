@@ -28,7 +28,6 @@ def load_data():
         return None
 
 # ---- Sidebar Filter Logic ----
-# ---- Sidebar Filter Logic ----
 def render_sidebar_filters(df):
     st.sidebar.header("🎛️ Filters")
     filtered_df = df.copy()
@@ -68,9 +67,11 @@ def render_sidebar_filters(df):
             if st.sidebar.checkbox(label, value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        elif len(unique_vals) <= 10:
-            selected = st.sidebar.selectbox(label, options=unique_vals)
-            filtered_df = filtered_df[filtered_df[col] == selected]
+        elif col.upper() == "CHANNELS":
+            options = ["All"] + unique_vals
+            selected = st.sidebar.selectbox(label, options=options)
+            if selected != "All":
+                filtered_df = filtered_df[filtered_df[col] == selected]
 
         else:
             selected = st.sidebar.selectbox(label, options=unique_vals)
