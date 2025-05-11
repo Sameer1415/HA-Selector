@@ -141,31 +141,31 @@ def main():
 
 
 
-# Feature columns (YES/NO display)
-for col in filtered_df.columns:
-    if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]:
-        val = str(model_row[col]).upper()
-        if val == "YES":
-            st.markdown(f"✅ {col}")
-        elif val == "NO":
-            st.markdown(f"❌ {col}")
-        else:
-            st.markdown(f"**{col}:** {model_row[col]}")
-
-    # ---- Flipkart-style Pagination ----
-    if total_pages > 1:
-        # st.markdown("### 📄 Pages:")
-        nav_cols = st.columns(min(total_pages + 2, 10))  # Show up to 7 numbered buttons
-
-        if nav_cols[0].button("⬅️ Prev", disabled=(st.session_state.current_page == 1)):
-            st.session_state.current_page -= 1
-
-        for i in range(1, min(total_pages + 1, 8)):
-            if nav_cols[i].button(str(i), disabled=(i == st.session_state.current_page)):
-                st.session_state.current_page = i
-
-        if nav_cols[-1].button("Next ➡️", disabled=(st.session_state.current_page == total_pages)):
-            st.session_state.current_page += 1
+    # Feature columns (YES/NO display)
+    for col in filtered_df.columns:
+        if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]:
+            val = str(model_row[col]).upper()
+            if val == "YES":
+                st.markdown(f"✅ {col}")
+            elif val == "NO":
+                st.markdown(f"❌ {col}")
+            else:
+                st.markdown(f"**{col}:** {model_row[col]}")
+    
+        # ---- Flipkart-style Pagination ----
+        if total_pages > 1:
+            # st.markdown("### 📄 Pages:")
+            nav_cols = st.columns(min(total_pages + 2, 10))  # Show up to 7 numbered buttons
+    
+            if nav_cols[0].button("⬅️ Prev", disabled=(st.session_state.current_page == 1)):
+                st.session_state.current_page -= 1
+    
+            for i in range(1, min(total_pages + 1, 8)):
+                if nav_cols[i].button(str(i), disabled=(i == st.session_state.current_page)):
+                    st.session_state.current_page = i
+    
+            if nav_cols[-1].button("Next ➡️", disabled=(st.session_state.current_page == total_pages)):
+                st.session_state.current_page += 1
 
 if __name__ == "__main__":
     main()
