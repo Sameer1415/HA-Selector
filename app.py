@@ -28,6 +28,7 @@ def load_data():
         return None
 
 # ---- Sidebar Filter Logic ----
+# ---- Sidebar Filter Logic ----
 def render_sidebar_filters(df):
     st.sidebar.header("🎛️ Filters")
     filtered_df = df.copy()
@@ -41,6 +42,9 @@ def render_sidebar_filters(df):
     filter_order = ordered_cols + other_columns
 
     for col in filter_order:
+        if col not in filtered_df.columns:
+            continue
+
         unique_vals = sorted(filtered_df[col].dropna().astype(str).unique())
         label = "REQUIREMENT" if col.upper() == "DEGREE OF LOSS" else col
 
@@ -51,12 +55,7 @@ def render_sidebar_filters(df):
         elif col.upper() == "PRICE":
             price_bucket = st.sidebar.radio(
                 "Price Range",
-                options=[
-                    "30,000 – 1,00,000",
-                    "1,00,000 – 3,00,000",
-                    "3,00,000+"
-                ],
-                horizontal=False
+                options=["30,000 – 1,00,000", "1,00,000 – 3,00,000", "3,00,000+"],
             )
             if price_bucket == "30,000 – 1,00,000":
                 filtered_df = filtered_df[(filtered_df[col] >= 30000) & (filtered_df[col] < 100000)]
@@ -80,7 +79,6 @@ def render_sidebar_filters(df):
     return filtered_df
 
 
-
 # ---- Main App ----
 def main():
     st.set_page_config(page_title="HA Selector", layout="wide")
@@ -98,22 +96,22 @@ def main():
         st.warning("No products match your filters.")
         return
 
-    # ---- Add model group ----
-    filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
-    model_groups = sorted(filtered_df["Model Group"].dropna().unique())
+    # ---- Extract Model Group ----
+    temp_df = filtered_df.copy()  # Avoid mutating filtered_df
+    temp_df["Model Group"] = temp_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
+    model_groups = sorted(temp_df["Model Group"].dropna().unique())
 
     st.markdown("## Select Model Group")
     group_cols = st.columns(len(model_groups))
     for i, group in enumerate(model_groups):
         if group_cols[i].button(group):
             st.session_state.selected_group = group
-            st.session_state.selected_model = None  # Reset model when group changes
+            st.session_state.selected_model = None  # Reset model on group change
 
-    # Fallback if no group selected yet
     if "selected_group" not in st.session_state or st.session_state.selected_group not in model_groups:
         st.session_state.selected_group = model_groups[0]
 
-    group_df = filtered_df[filtered_df["Model Group"] == st.session_state.selected_group]
+    group_df = temp_df[temp_df["Model Group"] == st.session_state.selected_group]
     model_names = sorted(group_df["Model Name"].dropna().unique())
 
     st.markdown(f"### Models in {st.session_state.selected_group}")
@@ -122,11 +120,10 @@ def main():
         if model_cols[i].button(model):
             st.session_state.selected_model = model
 
-    # Fallback if no model selected
     if "selected_model" not in st.session_state or st.session_state.selected_model not in model_names:
         st.session_state.selected_model = model_names[0]
 
-    # ---- Display selected model card ----
+    # ---- Display Model Card ----
     model_row = group_df[group_df["Model Name"] == st.session_state.selected_model].iloc[0]
 
     st.markdown(
@@ -141,6 +138,7 @@ def main():
         """,
         unsafe_allow_html=True
     )
+
 
 
 # Feature columns (YES/NO display)
