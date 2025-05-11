@@ -8,6 +8,11 @@ def load_data():
         df = pd.read_excel("sourcedata.xlsx")
         df.columns = df.columns.str.strip()
 
+        # Merge duplicate features
+        if "Augmented Focus.1" in df.columns and "Augmented Focus" in df.columns:
+            df["Augmented Focus"] = df["Augmented Focus"].combine_first(df["Augmented Focus.1"])
+            df.drop(columns=["Augmented Focus.1"], inplace=True)
+
         # Convert Price
         df["Price"] = pd.to_numeric(
             df["Price"].astype(str).str.replace(",", ""), errors="coerce"
