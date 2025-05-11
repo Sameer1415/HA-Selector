@@ -30,13 +30,14 @@ def render_sidebar_filters(df):
     # Map uppercase to actual DataFrame column names
     df_columns_upper = {col.upper(): col for col in df.columns}
 
-    preferred_order = ["QUANTITY", "REQUIREMENT", "CHANNELS"]
+    preferred_order = ["QUANTITY", "DEGREE OF LOSS", "CHANNELS"]
     ordered_cols = [df_columns_upper[col] for col in preferred_order if col in df_columns_upper]
     other_columns = [col for col in df.columns if col not in ordered_cols and col.upper() != "MODEL NAME"]
     filter_order = ordered_cols + other_columns
 
     for col in filter_order:
         unique_vals = sorted(df[col].dropna().astype(str).unique())
+        label = "REQUIREMENT" if col.upper() == "DEGREE OF LOSS" else col
 
         # ---- Quantity as horizontal radio ----
         if col.upper() == "QUANTITY":
@@ -46,25 +47,26 @@ def render_sidebar_filters(df):
         # ---- Numeric sliders ----
         elif pd.api.types.is_numeric_dtype(df[col]):
             min_val, max_val = int(df[col].min()), int(df[col].max())
-            selected_range = st.sidebar.slider(f"{col}", min_val, max_val, (min_val, max_val))
+            selected_range = st.sidebar.slider(label, min_val, max_val, (min_val, max_val))
             filtered_df = filtered_df[filtered_df[col].between(*selected_range)]
 
         # ---- YES/NO checkboxes ----
         elif set(unique_vals).issubset({"YES", "NO"}):
-            if st.sidebar.checkbox(f"{col}", value=False):
+            if st.sidebar.checkbox(label, value=False):
                 filtered_df = filtered_df[filtered_df[col] == "YES"]
 
-        # ---- Short category dropdowns (no "All") ----
+        # ---- Dropdown for short categories (without "All") ----
         elif len(unique_vals) <= 10:
-            selected = st.sidebar.selectbox(f"{col}", options=unique_vals)
+            selected = st.sidebar.selectbox(label, options=unique_vals)
             filtered_df = filtered_df[filtered_df[col] == selected]
 
-        # ---- Long category dropdown fallback ----
+        # ---- Long category fallback ----
         else:
-            selected = st.sidebar.selectbox(f"{col}", options=unique_vals)
+            selected = st.sidebar.selectbox(label, options=unique_vals)
             filtered_df = filtered_df[filtered_df[col] == selected]
 
     return filtered_df
+
 
 # ---- Main App ----
 def main():
