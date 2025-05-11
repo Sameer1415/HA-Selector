@@ -111,9 +111,9 @@ def main():
         st.warning("No products match your filters.")
         return
 
-    # ---- Product Display ----
-    df["Model Group"] = df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
-    model_groups = sorted(df["Model Group"].dropna().unique())
+# ---- Product Display ----
+    filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
+    model_groups = sorted(filtered_df["Model Group"].dropna().unique())
     
     st.markdown("## Select Model Group")
     group_cols = st.columns(len(model_groups))
@@ -121,13 +121,13 @@ def main():
     for i, group in enumerate(model_groups):
         if group_cols[i].button(group):
             st.session_state.selected_group = group
-            st.session_state.selected_model = None  # Reset model
+            st.session_state.selected_model = None  # Reset selected model on group change
     
-    # Default: pick first group if not already selected
-    if "selected_group" not in st.session_state:
+    # Fallback default group
+    if "selected_group" not in st.session_state or st.session_state.selected_group not in model_groups:
         st.session_state.selected_group = model_groups[0]
     
-    group_df = df[df["Model Group"] == st.session_state.selected_group]
+    group_df = filtered_df[filtered_df["Model Group"] == st.session_state.selected_group]
     model_names = sorted(group_df["Model Name"].dropna().unique())
     
     st.markdown(f"### Models in {st.session_state.selected_group}")
@@ -137,7 +137,7 @@ def main():
         if model_cols[i].button(model):
             st.session_state.selected_model = model
     
-    # Default: pick first model
+    # Fallback default model
     if "selected_model" not in st.session_state or st.session_state.selected_model not in model_names:
         st.session_state.selected_model = model_names[0]
     
@@ -156,6 +156,18 @@ def main():
         """,
         unsafe_allow_html=True
     )
+
+# Feature columns (YES/NO display)
+for col in filtered_df.columns:
+    if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]:
+        val = str(model_row[col]).upper()
+        if val == "YES":
+            st.markdown(f"✅ {col}")
+        elif val == "NO":
+            st.markdown(f"❌ {col}")
+        else:
+            st.markdown(f"**{col}:** {model_row[col]}")
+
     # ---- Flipkart-style Pagination ----
     if total_pages > 1:
         # st.markdown("### 📄 Pages:")
