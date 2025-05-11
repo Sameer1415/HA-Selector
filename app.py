@@ -53,7 +53,7 @@ def render_sidebar_filters(df):
         elif col.upper() == "PRICE":
             price_bucket = st.sidebar.radio(
                 "Price Range",
-                options=["30K – 1 Lakh", "1 Lakh – 3 Lakhs", "3 Lakhs+"],
+                options=["30,000 – 1,00,000", "1,00,000 – 3,00,000", "3,00,000+"],
                 horizontal=False
             )
             if price_bucket == "30K – 1 Lakh":
