@@ -84,66 +84,51 @@ def render_sidebar_filters(df):
 # ---- Main App ----
 def main():
     st.set_page_config(page_title="HA Selector", layout="wide")
+
     df = load_data()
-    if df is None:
+    if df is None or df.empty:
+        st.error("❌ Data could not be loaded.")
         return
 
     st.title("Titan HA Products")
+
+    # ---- Filter data from sidebar ----
     filtered_df = render_sidebar_filters(df)
-
-    # Pagination setup
-    items_per_page = 8
-    total_pages = (len(filtered_df) - 1) // items_per_page + 1 if len(filtered_df) > 0 else 0
-
-    if "current_page" not in st.session_state:
-        st.session_state.current_page = 1
-
-    if st.session_state.current_page > total_pages:
-        st.session_state.current_page = total_pages
-    if st.session_state.current_page < 1:
-        st.session_state.current_page = 1
-
-    start_idx = (st.session_state.current_page - 1) * items_per_page
-    end_idx = start_idx + items_per_page
-    paginated_df = filtered_df.iloc[start_idx:end_idx]
-
-    if paginated_df.empty:
+    if filtered_df.empty:
         st.warning("No products match your filters.")
         return
 
-# ---- Product Display ----
+    # ---- Add model group ----
     filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
     model_groups = sorted(filtered_df["Model Group"].dropna().unique())
-    
+
     st.markdown("## Select Model Group")
     group_cols = st.columns(len(model_groups))
-    
     for i, group in enumerate(model_groups):
         if group_cols[i].button(group):
             st.session_state.selected_group = group
-            st.session_state.selected_model = None  # Reset selected model on group change
-    
-    # Fallback default group
+            st.session_state.selected_model = None  # Reset model when group changes
+
+    # Fallback if no group selected yet
     if "selected_group" not in st.session_state or st.session_state.selected_group not in model_groups:
         st.session_state.selected_group = model_groups[0]
-    
+
     group_df = filtered_df[filtered_df["Model Group"] == st.session_state.selected_group]
     model_names = sorted(group_df["Model Name"].dropna().unique())
-    
+
     st.markdown(f"### Models in {st.session_state.selected_group}")
     model_cols = st.columns(len(model_names))
-    
     for i, model in enumerate(model_names):
         if model_cols[i].button(model):
             st.session_state.selected_model = model
-    
-    # Fallback default model
+
+    # Fallback if no model selected
     if "selected_model" not in st.session_state or st.session_state.selected_model not in model_names:
         st.session_state.selected_model = model_names[0]
-    
-    # Display the selected model card
+
+    # ---- Display selected model card ----
     model_row = group_df[group_df["Model Name"] == st.session_state.selected_model].iloc[0]
-    
+
     st.markdown(
         f"""
         <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9; margin-top: 20px;">
@@ -156,6 +141,7 @@ def main():
         """,
         unsafe_allow_html=True
     )
+
 
 # Feature columns (YES/NO display)
 for col in filtered_df.columns:
