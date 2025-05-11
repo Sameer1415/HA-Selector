@@ -109,7 +109,7 @@ def main():
 
     # ---- Handle Defaults ----
     if "selected_group" not in st.session_state or st.session_state.selected_group not in model_groups:
-        st.session_state.selected_group = model_groups[0]
+        return
 
     group_df = filtered_df[filtered_df["Model Group"] == st.session_state.selected_group]
     model_names = sorted(group_df["Model Name"].dropna().unique())
