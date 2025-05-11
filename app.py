@@ -90,28 +90,28 @@ def main():
 
     st.title("Titan HA Products")
 
-    # ---- Filter data from sidebar ----
+    # ---- Apply Sidebar Filters ----
     filtered_df = render_sidebar_filters(df)
     if filtered_df.empty:
         st.warning("No products match your filters.")
         return
 
     # ---- Extract Model Group ----
-    temp_df = filtered_df.copy()  # Avoid mutating filtered_df
-    temp_df["Model Group"] = temp_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
-    model_groups = sorted(temp_df["Model Group"].dropna().unique())
+    filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
+    model_groups = sorted(filtered_df["Model Group"].dropna().unique())
 
     st.markdown("## Select Model Group")
     group_cols = st.columns(len(model_groups))
     for i, group in enumerate(model_groups):
         if group_cols[i].button(group):
             st.session_state.selected_group = group
-            st.session_state.selected_model = None  # Reset model on group change
+            st.session_state.selected_model = None
 
+    # ---- Handle Defaults ----
     if "selected_group" not in st.session_state or st.session_state.selected_group not in model_groups:
         st.session_state.selected_group = model_groups[0]
 
-    group_df = temp_df[temp_df["Model Group"] == st.session_state.selected_group]
+    group_df = filtered_df[filtered_df["Model Group"] == st.session_state.selected_group]
     model_names = sorted(group_df["Model Name"].dropna().unique())
 
     st.markdown(f"### Models in {st.session_state.selected_group}")
@@ -123,7 +123,7 @@ def main():
     if "selected_model" not in st.session_state or st.session_state.selected_model not in model_names:
         st.session_state.selected_model = model_names[0]
 
-    # ---- Display Model Card ----
+    # ---- Display Selected Product ----
     model_row = group_df[group_df["Model Name"] == st.session_state.selected_model].iloc[0]
 
     st.markdown(
@@ -139,10 +139,8 @@ def main():
         unsafe_allow_html=True
     )
 
-
-
-    # Feature columns (YES/NO display)
-st.write("")  # Spacer
+    # ---- YES/NO Feature Icons ----
+    st.write("")  # Spacer
     for col in filtered_df.columns:
         if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]:
             val = str(model_row[col]).upper()
@@ -171,6 +169,7 @@ st.write("")  # Spacer
 
         if nav_cols[-1].button("Next ➡️", disabled=(st.session_state.current_page == total_pages)):
             st.session_state.current_page += 1
+
 
 if __name__ == "__main__":
     main()
