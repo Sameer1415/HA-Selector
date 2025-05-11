@@ -112,25 +112,41 @@ def main():
         return
 
     # ---- Product Display ----
-    # ---- Grouped Product Display by Model Prefix ----
-    # Step 1: Extract model groups
     df["Model Group"] = df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
     model_groups = sorted(df["Model Group"].dropna().unique())
     
-    # Step 2: Select a group
-    selected_group = st.selectbox("Select Model Group", model_groups)
+    st.markdown("## Select Model Group")
+    group_cols = st.columns(len(model_groups))
     
-    # Step 3: Filter models under that group
-    group_df = df[df["Model Group"] == selected_group]
+    for i, group in enumerate(model_groups):
+        if group_cols[i].button(group):
+            st.session_state.selected_group = group
+            st.session_state.selected_model = None  # Reset model
+    
+    # Default: pick first group if not already selected
+    if "selected_group" not in st.session_state:
+        st.session_state.selected_group = model_groups[0]
+    
+    group_df = df[df["Model Group"] == st.session_state.selected_group]
     model_names = sorted(group_df["Model Name"].dropna().unique())
-    selected_model = st.selectbox("Select a Product", model_names)
     
-    # Step 4: Display selected model specs
-    model_row = group_df[group_df["Model Name"] == selected_model].iloc[0]
+    st.markdown(f"### Models in {st.session_state.selected_group}")
+    model_cols = st.columns(len(model_names))
+    
+    for i, model in enumerate(model_names):
+        if model_cols[i].button(model):
+            st.session_state.selected_model = model
+    
+    # Default: pick first model
+    if "selected_model" not in st.session_state or st.session_state.selected_model not in model_names:
+        st.session_state.selected_model = model_names[0]
+    
+    # Display the selected model card
+    model_row = group_df[group_df["Model Name"] == st.session_state.selected_model].iloc[0]
     
     st.markdown(
         f"""
-        <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9;">
+        <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9; margin-top: 20px;">
             <h4>{model_row['Model Name']}</h4>
             <p><strong>💰 Price:</strong> ₹{model_row['Price']}</p>
             <p><strong>Quantity:</strong> {model_row['Quantity']}</p>
