@@ -112,34 +112,34 @@ def main():
         return
 
     # ---- Product Display ----
-# ---- Grouped Product Display by Model Prefix ----
-# Step 1: Extract model groups
-df["Model Group"] = df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
-model_groups = sorted(df["Model Group"].dropna().unique())
-
-# Step 2: Select a group
-selected_group = st.selectbox("Select Model Group", model_groups)
-
-# Step 3: Filter models under that group
-group_df = df[df["Model Group"] == selected_group]
-model_names = sorted(group_df["Model Name"].dropna().unique())
-selected_model = st.selectbox("Select a Product", model_names)
-
-# Step 4: Display selected model specs
-model_row = group_df[group_df["Model Name"] == selected_model].iloc[0]
-
-st.markdown(
-    f"""
-    <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9;">
-        <h4>{model_row['Model Name']}</h4>
-        <p><strong>💰 Price:</strong> ₹{model_row['Price']}</p>
-        <p><strong>Quantity:</strong> {model_row['Quantity']}</p>
-        <p><strong>Requirement:</strong> {model_row['Degree of loss']}</p>
-        <p><strong>Channels:</strong> {model_row['Channels']}</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    # ---- Grouped Product Display by Model Prefix ----
+    # Step 1: Extract model groups
+    df["Model Group"] = df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
+    model_groups = sorted(df["Model Group"].dropna().unique())
+    
+    # Step 2: Select a group
+    selected_group = st.selectbox("Select Model Group", model_groups)
+    
+    # Step 3: Filter models under that group
+    group_df = df[df["Model Group"] == selected_group]
+    model_names = sorted(group_df["Model Name"].dropna().unique())
+    selected_model = st.selectbox("Select a Product", model_names)
+    
+    # Step 4: Display selected model specs
+    model_row = group_df[group_df["Model Name"] == selected_model].iloc[0]
+    
+    st.markdown(
+        f"""
+        <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9;">
+            <h4>{model_row['Model Name']}</h4>
+            <p><strong>💰 Price:</strong> ₹{model_row['Price']}</p>
+            <p><strong>Quantity:</strong> {model_row['Quantity']}</p>
+            <p><strong>Requirement:</strong> {model_row['Degree of loss']}</p>
+            <p><strong>Channels:</strong> {model_row['Channels']}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     # ---- Flipkart-style Pagination ----
     if total_pages > 1:
         # st.markdown("### 📄 Pages:")
