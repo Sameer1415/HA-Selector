@@ -131,10 +131,9 @@ def main():
         f"""
         <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9; margin-top: 20px;">
             <h4>{model_row['Model Name']}</h4>
-            <p><strong>💰 Price:</strong> ₹{model_row['Price']}</p>
             <p><strong>Quantity:</strong> {model_row['Quantity']}</p>
-            <p><strong>Requirement:</strong> {model_row['Degree of loss']}</p>
             <p><strong>Channels:</strong> {model_row['Channels']}</p>
+            <p><strong>Price:</strong> ₹{model_row['Price']}</p>
         </div>
         """,
         unsafe_allow_html=True
