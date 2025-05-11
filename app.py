@@ -5,7 +5,7 @@ import pandas as pd
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_excel("sourcefile")
+        df = pd.read_excel("sourcefile.xlsx")
         df.columns = df.columns.str.strip()
 
         # Convert Price
