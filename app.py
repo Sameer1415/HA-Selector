@@ -8,26 +8,23 @@ def load_data():
         df = pd.read_excel("sourcedata.xlsx")
         df.columns = df.columns.str.strip()
 
-        # Merge duplicate features
         if "Augmented Focus.1" in df.columns and "Augmented Focus" in df.columns:
             df["Augmented Focus"] = df["Augmented Focus"].combine_first(df["Augmented Focus.1"])
             df.drop(columns=["Augmented Focus.1"], inplace=True)
 
-        # Convert Price
         df["Price"] = pd.to_numeric(
             df["Price"].astype(str).str.replace(",", ""), errors="coerce"
         ).fillna(0).astype(int)
 
-        # Standardize string values to uppercase
         for col in df.select_dtypes(include="object").columns:
             df[col] = df[col].astype(str).str.strip().str.upper()
 
         return df
     except FileNotFoundError:
-        st.error("❌ Error: 'sourcefile.xlsx' not found.")
+        st.error("❌ Error: 'sourcedata.xlsx' not found.")
         return None
 
-# ---- Sidebar Filter Logic ----
+# ---- Sidebar Filters ----
 def render_sidebar_filters(df):
     st.sidebar.header("🎛️ Filters")
     filtered_df = df.copy()
@@ -90,22 +87,19 @@ def render_sidebar_filters(df):
 
 # ---- Main App ----
 def main():
-    st.set_page_config(page_title="HA Selector", layout="wide")
+    st.set_page_config(page_title="Titan HA Selector", layout="wide")
+    st.title("Titan HA Products")
 
     df = load_data()
     if df is None or df.empty:
-        st.error("❌ Data could not be loaded.")
         return
 
-    st.title("Titan HA Products")
-
-    # ---- Apply Sidebar Filters ----
     filtered_df = render_sidebar_filters(df)
     if filtered_df.empty:
         st.warning("No products match your filters.")
         return
 
-    # ---- Extract Model Group ----
+    # Extract model group
     filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
     model_groups = sorted(filtered_df["Model Group"].dropna().unique())
 
@@ -115,22 +109,27 @@ def main():
         if group_cols[i].button(group):
             st.session_state.selected_group = group
 
-    if "selected_group" not in st.session_state or st.session_state.selected_group not in model_groups:
+    # Set default selection if not set
+    if "selected_group" not in st.session_state and model_groups:
+        st.session_state.selected_group = model_groups[0]
+
+    selected_group = st.session_state.get("selected_group")
+    if not selected_group:
         return
 
-    group_df = filtered_df[filtered_df["Model Group"] == st.session_state.selected_group]
+    group_df = filtered_df[filtered_df["Model Group"] == selected_group]
     model_names = sorted(group_df["Model Name"].dropna().unique())
 
-    st.markdown(f"### Models in {st.session_state.selected_group}")
+    st.markdown(f"### All Models in {selected_group}")
 
-    # ---- Show all models directly (no buttons) ----
     for model in model_names:
         model_row = group_df[group_df["Model Name"] == model].iloc[0]
 
-        with st.expander(f"📦 {model}", expanded=True):
+        st.markdown(f"#### 🧩 {model}")
+        with st.container():
             st.markdown(
                 f"""
-                <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9;">
+                <div style="border:1px solid #ccc; padding:15px; border-radius:10px; background-color:#f9f9f9;">
                     <p><strong>Quantity:</strong> {model_row['Quantity']}</p>
                     <p><strong>Channels:</strong> {model_row['Channels']}</p>
                     <p><strong>Price:</strong> ₹{model_row['Price']}</p>
@@ -139,16 +138,21 @@ def main():
                 unsafe_allow_html=True
             )
 
-            st.write("")  # spacer
-            for col in group_df.columns:
-                if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]:
-                    val = str(model_row[col]).upper()
-                    if val == "YES":
-                        st.markdown(f"✅ {col}")
-                    elif val == "NO":
-                        st.markdown(f"❌ {col}")
-                    else:
-                        st.markdown(f"**{col}:** {model_row[col]}")
+            other_features = [
+                col for col in group_df.columns
+                if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]
+            ]
+
+            for col in other_features:
+                val = str(model_row[col]).upper()
+                if val == "YES":
+                    st.markdown(f"✅ {col}")
+                elif val == "NO":
+                    st.markdown(f"❌ {col}")
+                else:
+                    st.markdown(f"🔹 **{col}:** {model_row[col]}")
+
+            st.markdown("---")
 
 if __name__ == "__main__":
     main()
