@@ -24,7 +24,7 @@ def load_data():
 
         return df
     except FileNotFoundError:
-        st.error("❌ Error: 'sourcedata.xlsx' not found.")
+        st.error("❌ Error: 'sourcefile.xlsx' not found.")
         return None
 
 # ---- Sidebar Filter Logic ----
@@ -32,9 +32,7 @@ def render_sidebar_filters(df):
     st.sidebar.header("🎛️ Filters")
     filtered_df = df.copy()
 
-    # Map uppercase to actual DataFrame column names
     df_columns_upper = {col.upper(): col for col in df.columns}
-
     preferred_order = ["QUANTITY", "DEGREE OF LOSS", "CHANNELS"]
     ordered_cols = [df_columns_upper[col] for col in preferred_order if col in df_columns_upper]
     other_columns = [col for col in df.columns if col not in ordered_cols and col.upper() != "MODEL NAME"]
@@ -64,22 +62,15 @@ def render_sidebar_filters(df):
                 filtered_df = filtered_df[filtered_df[col] >= 300000]
 
         elif col.upper() == "DEGREE OF LOSS":
-            severity_order = ["MILD", "MODERATE", "SEVERE", "PROFOUND"]
-            available_levels = [level for level in severity_order if level in unique_vals]
-            selected = st.sidebar.selectbox("REQUIREMENT", options=available_levels)
-
-            if selected == "MILD":
-                allowed = ["MODERATE", "SEVERE", "PROFOUND"]
-            elif selected == "MODERATE":
-                allowed = ["SEVERE", "PROFOUND"]
-            elif selected == "SEVERE":
-                allowed = ["SEVERE", "PROFOUND"]
-            elif selected == "PROFOUND":
-                allowed = ["PROFOUND"]
-            else:
-                allowed = []
-
-            filtered_df = filtered_df[filtered_df[col].isin(allowed)]
+            requirement_order = ["MILD", "MODERATE", "SEVERE", "PROFOUND"]
+            selected = st.sidebar.selectbox("Requirement", options=requirement_order)
+            filter_map = {
+                "MILD": ["MILD", "MODERATE", "SEVERE", "PROFOUND"],
+                "MODERATE": ["MODERATE", "SEVERE", "PROFOUND"],
+                "SEVERE": ["SEVERE", "PROFOUND"],
+                "PROFOUND": ["PROFOUND"]
+            }
+            filtered_df = filtered_df[filtered_df[col].isin(filter_map[selected])]
 
         elif set(unique_vals).issubset({"YES", "NO"}):
             if st.sidebar.checkbox(label, value=False):
@@ -96,7 +87,6 @@ def render_sidebar_filters(df):
             filtered_df = filtered_df[filtered_df[col] == selected]
 
     return filtered_df
-
 
 # ---- Main App ----
 def main():
@@ -124,9 +114,7 @@ def main():
     for i, group in enumerate(model_groups):
         if group_cols[i].button(group):
             st.session_state.selected_group = group
-            st.session_state.selected_model = None
 
-    # ---- Handle Defaults ----
     if "selected_group" not in st.session_state or st.session_state.selected_group not in model_groups:
         return
 
@@ -134,60 +122,33 @@ def main():
     model_names = sorted(group_df["Model Name"].dropna().unique())
 
     st.markdown(f"### Models in {st.session_state.selected_group}")
-    model_cols = st.columns(len(model_names))
-    for i, model in enumerate(model_names):
-        if model_cols[i].button(model):
-            st.session_state.selected_model = model
 
-    if "selected_model" not in st.session_state or st.session_state.selected_model not in model_names:
-        return  # Do not show any product until a model is clicked
+    # ---- Show all models directly (no buttons) ----
+    for model in model_names:
+        model_row = group_df[group_df["Model Name"] == model].iloc[0]
 
-    # ---- Display Selected Product ----
-    model_row = group_df[group_df["Model Name"] == st.session_state.selected_model].iloc[0]
+        with st.expander(f"📦 {model}", expanded=True):
+            st.markdown(
+                f"""
+                <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9;">
+                    <p><strong>Quantity:</strong> {model_row['Quantity']}</p>
+                    <p><strong>Channels:</strong> {model_row['Channels']}</p>
+                    <p><strong>Price:</strong> ₹{model_row['Price']}</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-    st.markdown(
-        f"""
-        <div style="border:1px solid #ccc; padding:20px; border-radius:10px; background-color:#f9f9f9; margin-top: 20px;">
-            <h4>{model_row['Model Name']}</h4>
-            <p><strong>Quantity:</strong> {model_row['Quantity']}</p>
-            <p><strong>Channels:</strong> {model_row['Channels']}</p>
-            <p><strong>Price:</strong> ₹{model_row['Price']}</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # ---- YES/NO Feature Icons ----
-    st.write("")  # Spacer
-    for col in filtered_df.columns:
-        if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]:
-            val = str(model_row[col]).upper()
-            if val == "YES":
-                st.markdown(f"✅ {col}")
-            elif val == "NO":
-                st.markdown(f"❌ {col}")
-            else:
-                st.markdown(f"**{col}:** {model_row[col]}")
-
-    # ---- Flipkart-Style Pagination ----
-    items_per_page = 8
-    total_pages = (len(filtered_df) - 1) // items_per_page + 1 if len(filtered_df) > 0 else 0
-    if "current_page" not in st.session_state:
-        st.session_state.current_page = 1
-
-    if total_pages > 1:
-        nav_cols = st.columns(min(total_pages + 2, 10))  # Prev + numbered + Next
-
-        if nav_cols[0].button("⬅️ Prev", disabled=(st.session_state.current_page == 1)):
-            st.session_state.current_page -= 1
-
-        for i in range(1, min(total_pages + 1, 8)):
-            if nav_cols[i].button(str(i), disabled=(i == st.session_state.current_page)):
-                st.session_state.current_page = i
-
-        if nav_cols[-1].button("Next ➡️", disabled=(st.session_state.current_page == total_pages)):
-            st.session_state.current_page += 1
-
+            st.write("")  # spacer
+            for col in group_df.columns:
+                if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]:
+                    val = str(model_row[col]).upper()
+                    if val == "YES":
+                        st.markdown(f"✅ {col}")
+                    elif val == "NO":
+                        st.markdown(f"❌ {col}")
+                    else:
+                        st.markdown(f"**{col}:** {model_row[col]}")
 
 if __name__ == "__main__":
     main()
