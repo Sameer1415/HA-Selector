@@ -24,7 +24,7 @@ def load_data():
 
         return df
     except FileNotFoundError:
-        st.error("❌ Error: 'sourcefile.xlsx' not found.")
+        st.error("❌ Error: 'sourcedata.xlsx' not found.")
         return None
 
 # ---- Sidebar Filter Logic ----
@@ -62,6 +62,24 @@ def render_sidebar_filters(df):
                 filtered_df = filtered_df[(filtered_df[col] >= 100000) & (filtered_df[col] < 300000)]
             elif price_bucket == "3,00,000+":
                 filtered_df = filtered_df[filtered_df[col] >= 300000]
+
+        elif col.upper() == "DEGREE OF LOSS":
+            severity_order = ["MILD", "MODERATE", "SEVERE", "PROFOUND"]
+            available_levels = [level for level in severity_order if level in unique_vals]
+            selected = st.sidebar.selectbox("REQUIREMENT", options=available_levels)
+
+            if selected == "MILD":
+                allowed = ["MODERATE", "SEVERE", "PROFOUND"]
+            elif selected == "MODERATE":
+                allowed = ["SEVERE", "PROFOUND"]
+            elif selected == "SEVERE":
+                allowed = ["SEVERE", "PROFOUND"]
+            elif selected == "PROFOUND":
+                allowed = ["PROFOUND"]
+            else:
+                allowed = []
+
+            filtered_df = filtered_df[filtered_df[col].isin(allowed)]
 
         elif set(unique_vals).issubset({"YES", "NO"}):
             if st.sidebar.checkbox(label, value=False):
@@ -123,7 +141,6 @@ def main():
 
     if "selected_model" not in st.session_state or st.session_state.selected_model not in model_names:
         return  # Do not show any product until a model is clicked
-
 
     # ---- Display Selected Product ----
     model_row = group_df[group_df["Model Name"] == st.session_state.selected_model].iloc[0]
