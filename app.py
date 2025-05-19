@@ -10,6 +10,14 @@ const groupedData = {
       image:
         "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg?rev=c993db8a8cb6470692b613a45f701c47&extension=webp&hash=5F307282D586208C92013BA20A652A59",
       price: 1000,
+      summary: [
+        "🔋 All-Day Rechargeable Power",
+        "🎧 Crystal Clear Speech in Quiet",
+        "🔊 Hear Voices Clearly in Noise",
+        "🎨 Stylish, Modern Design",
+        "💧 Sweat & Dust Resistant Build",
+        "⚙️ Auto-Adjusting Smart Sound"
+      ],
       features: {
         Bluetooth: true,
         Rechargeable: true,
@@ -20,6 +28,14 @@ const groupedData = {
     {
       model: "Orion 2",
       price: 800,
+      summary: [
+        "🔋 All-Day Rechargeable Power",
+        "🎧 Crystal Clear Speech in Quiet",
+        "🔊 Hear Voices Clearly in Noise",
+        "🎨 Stylish, Modern Design",
+        "💧 Sweat & Dust Resistant Build",
+        "⚙️ Auto-Adjusting Smart Sound"
+      ],
       features: {
         Bluetooth: false,
         Rechargeable: true,
@@ -143,6 +159,13 @@ export default function ProductPage() {
                       alt={product.model}
                       className="mb-4 h-48 object-contain mx-auto"
                     />
+                  )}
+                  {product.summary && (
+                    <ul className="mb-4 text-sm list-disc list-inside text-gray-700">
+                      {product.summary.map((line, i) => (
+                        <li key={i}>{line}</li>
+                      ))}
+                    </ul>
                   )}
                   <ul className="text-sm">
                     {Object.entries(product.features).map(([key, value]) => (
