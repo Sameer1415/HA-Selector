@@ -1,5 +1,5 @@
-import streamlit as pd
 import streamlit as st
+import pandas as pd
 
 # ---- Load Data ----
 @st.cache_data
@@ -17,8 +17,7 @@ def load_data():
             df.drop(columns=["Augmented Focus.1"], inplace=True)
 
         # Convert 'Price' to numeric, handling commas and missing values
-        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(
-            0).astype(int)
+        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
 
         # Convert object type columns to uppercase and strip whitespace
         for col in df.select_dtypes(include="object").columns:
@@ -27,7 +26,10 @@ def load_data():
         return df
     except FileNotFoundError:
         st.error("❌ Error: 'sourcedata.xlsx' not found.")
-        return None
+        return pd.DataFrame()  # Return an empty DataFrame to avoid further errors
+    except Exception as e:
+        st.error(f"❌ An error occurred while loading data: {e}")
+        return pd.DataFrame()
 
 # ---- Sidebar Filters ----
 def render_sidebar_filters(df):
@@ -99,7 +101,6 @@ def render_sidebar_filters(df):
 
     return filtered_df
 
-
 # ---- Show Individual Model Card ----
 def show_model_card(row):
     """
@@ -123,7 +124,6 @@ def show_model_card(row):
             else:
                 icon = str(val)
             st.markdown(f"- **{col}**: {icon}")
-
 
 # ---- Show comparison table ----
 def show_comparison_table(models_df):
@@ -167,7 +167,6 @@ def show_comparison_table(models_df):
 
     st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
 
-
 # ---- Main App ----
 def main():
     """
@@ -208,17 +207,17 @@ def main():
     model_names = group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
-    for model_name in model_names:
-        row = group_df[group_df["Model Name"] == model_name].iloc[0]
-        show_model_card(row)
-        st.markdown("---")
-
-    # Show comparison in chunks of 4
-    model_chunks = [model_names[i:i + 4] for i in range(0, len(model_names), 4)]
-    for chunk in model_chunks:
-        compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
-        if len(compare_df) > 1:  # check the length
+    if len(model_names) > 1:
+        # Show comparison in chunks of 4
+        model_chunks = [model_names[i:i + 4] for i in range(0, len(model_names), 4)]
+        for chunk in model_chunks:
+            compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
             show_comparison_table(compare_df)
+    else:
+        for model_name in model_names:
+            row = group_df[group_df["Model Name"] == model_name].iloc[0]
+            show_model_card(row)
+            st.markdown("---")
 
 if __name__ == "__main__":
     main()
