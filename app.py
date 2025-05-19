@@ -1,5 +1,5 @@
+import streamlit as pd
 import streamlit as st
-import pandas as pd
 
 # ---- Load Data ----
 @st.cache_data
@@ -17,7 +17,8 @@ def load_data():
             df.drop(columns=["Augmented Focus.1"], inplace=True)
 
         # Convert 'Price' to numeric, handling commas and missing values
-        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
+        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(
+            0).astype(int)
 
         # Convert object type columns to uppercase and strip whitespace
         for col in df.select_dtypes(include="object").columns:
@@ -30,6 +31,7 @@ def load_data():
     except Exception as e:
         st.error(f"❌ An error occurred while loading data: {e}")
         return pd.DataFrame()
+
 
 # ---- Sidebar Filters ----
 def render_sidebar_filters(df):
@@ -101,6 +103,7 @@ def render_sidebar_filters(df):
 
     return filtered_df
 
+
 # ---- Show Individual Model Card ----
 def show_model_card(row):
     """
@@ -125,6 +128,7 @@ def show_model_card(row):
                 icon = str(val)
             st.markdown(f"- **{col}**: {icon}")
 
+
 # ---- Show comparison table ----
 def show_comparison_table(models_df):
     """
@@ -141,7 +145,8 @@ def show_comparison_table(models_df):
         return
 
     comparison_cols = ["Channels", "Price"]
-    other_cols = [col for col in models_df.columns if col not in ["Model Name", "Quantity", "Degree of loss", "Model Group"] + comparison_cols]
+    other_cols = [col for col in models_df.columns if
+                  col not in ["Model Name", "Quantity", "Degree of loss", "Model Group"] + comparison_cols]
     comparison_cols += other_cols
 
     comparison_data = pd.DataFrame(index=comparison_cols)
@@ -166,6 +171,7 @@ def show_comparison_table(models_df):
 
     st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
 
+
 # ---- Main App ----
 def main():
     """
@@ -188,7 +194,7 @@ def main():
     model_groups = sorted(filtered_df["Model Group"].dropna().unique())
 
     st.markdown("## Select Model Group")
-    if model_groups: # Check if model_groups is not empty
+    if model_groups:  # Check if model_groups is not empty
         cols = st.columns(len(model_groups))
         for i, group in enumerate(model_groups):
             if group == "ORION":
@@ -225,15 +231,16 @@ def main():
             st.markdown("---")
 
         # Show comparison in chunks of 4
-        model_chunks = [model_names[i:i+4] for i in range(0, len(model_names), 4)]
+        model_chunks = [model_names[i:i + 4] for i in range(0, len(model_names), 4)]
         for chunk in model_chunks:
             compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
-            if len(compare_df) > 1: #check the length
+            if len(compare_df) > 1:  # check the length
                 show_comparison_table(compare_df)
             elif not compare_df.empty:  # Add this condition
-                show_model_card(compare_df.iloc[0]) #show the model card
+                show_model_card(compare_df.iloc[0])  # show the model card
     else:
         st.warning("No model groups found based on the data.")
+
 
 if __name__ == "__main__":
     main()
