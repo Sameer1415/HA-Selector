@@ -125,47 +125,7 @@ def show_model_card(row):
                 icon = str(val)
             st.markdown(f"- **{col}**: {icon}")
 
-# ---- Show comparison table ----
-def show_comparison_table(models_df):
-    """
-    Displays a comparison table of model features.
 
-    Args:
-        models_df (pd.DataFrame): DataFrame containing the models to compare.
-    """
-    st.markdown("## 📊 Feature Comparison")
-
-    # Handle empty DataFrame
-    if models_df.empty:
-        st.warning("No models to compare.")
-        return
-
-    comparison_cols = ["Channels", "Price"]
-    other_cols = [col for col in models_df.columns if
-                  col not in ["Model Name", "Quantity", "Degree of loss", "Model Group"] + comparison_cols]
-    comparison_cols += other_cols
-
-    comparison_data = pd.DataFrame(index=comparison_cols)
-
-    for _, row in models_df.iterrows():
-        values = []
-        for col in comparison_cols:
-            val = row.get(col, "")
-            if pd.isna(val):  # Check for null values
-                values.append("")
-            elif str(val).upper() == "YES":
-                values.append("✅")
-            elif str(val).upper() == "NO":
-                values.append("❌")
-            elif col == "Channels":
-                values.append(str(int(val)) if pd.notnull(val) else "")
-            elif col == "Price":
-                values.append(f"₹{int(val):,}")
-            else:
-                values.append(str(val))
-        comparison_data[row["Model Name"]] = values
-
-    st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
 
 # ---- Main App ----
 def main():
@@ -211,8 +171,7 @@ def main():
     model_names = group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
-    # Show comparison table for all results
-    show_comparison_table(group_df.drop_duplicates("Model Name"))
+
 
     for model_name in model_names:
         row = group_df[group_df["Model Name"] == model_name].iloc[0]
