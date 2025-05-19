@@ -189,10 +189,13 @@ def main():
 
     st.markdown("## Select Model Group")
     if model_groups: # Check if model_groups is not empty
-        group_cols = st.columns(len(model_groups))
         for i, group in enumerate(model_groups):
-            if group_cols[i].button(group):
-                st.session_state.selected_group = group
+            if group == "ORION":
+                if st.button(label=f"{group}  \n🔋 All-Day Rechargeable Power \n🎧 Crystal Clear Speech in Quiet \n🔊 Hear Voices Clearly in Noise \n🎨 Stylish, Modern Design \n💧 Sweat & Dust Resistant Build \n⚙️ Auto-Adjusting Smart Sound"):
+                    st.session_state.selected_group = group
+            else:
+                if st.button(group):
+                    st.session_state.selected_group = group
 
         if "selected_group" not in st.session_state:
             st.session_state.selected_group = model_groups[0]
@@ -203,17 +206,6 @@ def main():
         group_df = group_df.sort_values(by="Price", ascending=False)
 
         st.markdown(f"## All Models in {selected_group}")
-        if selected_group == "ORION":
-            st.markdown(
-                f"<div style='border: 2px solid #4CAF50; border-radius: 5px; padding: 10px; margin-bottom: 10px; background-color: #f0f8f4; color: #0c3001; font-size: 1.1em;'><strong>{selected_group}</strong><br>"
-                f"🔋 All-Day Rechargeable Power<br>"
-                f"🎧 Crystal Clear Speech in Quiet<br>"
-                f"🔊 Hear Voices Clearly in Noise<br>"
-                f"🎨 Stylish, Modern Design<br>"
-                f"💧 Sweat & Dust Resistant Build<br>"
-                f"⚙️ Auto-Adjusting Smart Sound</div>",
-                unsafe_allow_html=True
-            )
         model_names = group_df["Model Name"].dropna().unique()
         st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
