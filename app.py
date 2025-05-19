@@ -114,13 +114,17 @@ def show_comparison_table(models_df):
     for _, row in models_df.iterrows():
         values = []
         for col in comparison_cols:
-            val = str(row.get(col, "")).upper()
-            if val == "YES":
+            val = row.get(col, "")
+            if str(val).upper() == "YES":
                 values.append("✅")
-            elif val == "NO":
+            elif str(val).upper() == "NO":
                 values.append("❌")
+            elif col == "Channels":
+                values.append(str(int(val)) if pd.notnull(val) else "")
+            elif col == "Price":
+                values.append(f"₹{int(val):,}")
             else:
-                values.append(val)
+                values.append(str(val))
         comparison_data[row["Model Name"]] = values
 
     st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
@@ -169,8 +173,7 @@ def main():
 
     # Show comparison in chunks of 4
     model_chunks = [model_names[i:i+4] for i in range(0, len(model_names), 4)]
-    for idx, chunk in enumerate(model_chunks):
-        st.markdown(f"### 🔎 Comparison Set {idx + 1}")
+    for chunk in model_chunks:
         compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
         show_comparison_table(compare_df)
 
