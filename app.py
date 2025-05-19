@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-import math
 
-# ---- Load data ----
+# ---- Load Data ----
 @st.cache_data
 def load_data():
     try:
@@ -84,7 +83,25 @@ def render_sidebar_filters(df):
 
     return filtered_df
 
-# ---- Show comparison ----
+# ---- Show Individual Model Card ----
+def show_model_card(row):
+    st.markdown(f"### 📌 {row['Model Name']}")
+    st.markdown(f"💰 **Price:** ₹{row['Price']:,}")
+    st.markdown(f"🔢 **Channels:** {row.get('Channels', 'N/A')}")
+
+    excluded = {"Model Name", "Price", "Channels", "Quantity", "Degree of loss", "Model Group"}
+    for col in row.index:
+        if col not in excluded:
+            val = row[col]
+            if str(val).upper() == "YES":
+                icon = "✅"
+            elif str(val).upper() == "NO":
+                icon = "❌"
+            else:
+                icon = str(val)
+            st.markdown(f"- **{col}**: {icon}")
+
+# ---- Show comparison table ----
 def show_comparison_table(models_df):
     st.markdown("## 📊 Feature Comparison")
 
@@ -122,7 +139,6 @@ def main():
         st.warning("No products match your filters.")
         return
 
-    # Extract model group
     filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
     model_groups = sorted(filtered_df["Model Group"].dropna().unique())
 
@@ -142,16 +158,19 @@ def main():
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
     group_df = group_df.sort_values(by="Price", ascending=False)
 
-    model_names = sorted(group_df["Model Name"].dropna().unique(),
-                         key=lambda x: group_df[group_df["Model Name"] == x]["Price"].max(), reverse=True)
-
-    st.markdown(f"### All Models in {selected_group}")
+    st.markdown(f"## All Models in {selected_group}")
+    model_names = group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
-    model_chunks = [model_names[i:i+4] for i in range(0, len(model_names), 4)]
+    for model_name in model_names:
+        row = group_df[group_df["Model Name"] == model_name].iloc[0]
+        show_model_card(row)
+        st.markdown("---")
 
-    for chunk_index, chunk in enumerate(model_chunks):
-        st.markdown(f"### 🔎 Comparison Set {chunk_index + 1}")
+    # Show comparison in chunks of 4
+    model_chunks = [model_names[i:i+4] for i in range(0, len(model_names), 4)]
+    for idx, chunk in enumerate(model_chunks):
+        st.markdown(f"### 🔎 Comparison Set {idx + 1}")
         compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
         show_comparison_table(compare_df)
 
