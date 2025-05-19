@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import math
 
 # ---- Load data ----
 @st.cache_data
@@ -83,7 +84,7 @@ def render_sidebar_filters(df):
 
     return filtered_df
 
-# ---- Comparison Table ----
+# ---- Show comparison ----
 def show_comparison_table(models_df):
     st.markdown("## 📊 Feature Comparison")
 
@@ -147,45 +148,12 @@ def main():
     st.markdown(f"### All Models in {selected_group}")
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
-    selected_models = st.multiselect("📌 Select up to 4 models for comparison:", model_names, max_selections=4)
+    model_chunks = [model_names[i:i+4] for i in range(0, len(model_names), 4)]
 
-    if selected_models:
-        compare_df = group_df[group_df["Model Name"].isin(selected_models)].drop_duplicates("Model Name")
+    for chunk_index, chunk in enumerate(model_chunks):
+        st.markdown(f"### 🔎 Comparison Set {chunk_index + 1}")
+        compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
         show_comparison_table(compare_df)
-
-    for model in model_names:
-        if model in selected_models:
-            continue
-
-        model_row = group_df[group_df["Model Name"] == model].iloc[0]
-
-        st.markdown(f"#### 🧩 {model}")
-        with st.container():
-            st.markdown(
-                f"""
-                <div style="border:1px solid #ccc; padding:15px; border-radius:10px; background-color:#f9f9f9;">
-                    <p><strong>Channels:</strong> {model_row['Channels']}</p>
-                    <p><strong>Price:</strong> ₹{model_row['Price']}</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            other_features = [
-                col for col in group_df.columns
-                if col not in ["Model Name", "Price", "Quantity", "Degree of loss", "Channels", "Model Group"]
-            ]
-
-            for col in other_features:
-                val = str(model_row[col]).upper()
-                if val == "YES":
-                    st.markdown(f"✅ {col}")
-                elif val == "NO":
-                    st.markdown(f"❌ {col}")
-                else:
-                    st.markdown(f"🔹 **{col}:** {model_row[col]}")
-
-            st.markdown("---")
 
 if __name__ == "__main__":
     main()
