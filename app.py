@@ -165,13 +165,17 @@ def main():
         return
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
+
+    # Define the desired order
+    order = ['7IX', '5IX', '3IX', 'AX', 'X']
+    group_df['Model_Order'] = group_df['Model Name'].str.extract(r'(\d?IX|AX|X)$', expand=False).map(lambda x: x if x in order else '')
+    group_df = group_df.sort_values(by=['Model_Order'], key=lambda x: x.map(lambda a: order.index(a) if a in order else len(order)), ascending=False)
+
     group_df = group_df.sort_values(by="Price", ascending=False)
 
     st.markdown(f"## All Models in {selected_group}")
     model_names = group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
-
-
 
     for model_name in model_names:
         row = group_df[group_df["Model Name"] == model_name].iloc[0]
@@ -182,10 +186,11 @@ def get_group_description(group):
     """Returns the description for each model group."""
     descriptions = {
         "ORION": "🔋 All-Day Rechargeable Power <br> 🎧 Crystal Clear Speech in Quiet <br> 🔊 Hear Voices Clearly in Noise <br> 🎨 Stylish, Modern Design <br> 💧 Sweat & Dust Resistant Build <br> ⚙️ Auto-Adjusting Smart Sound",
-        "PURE": "Premium sound quality with advanced features.",  # Add specific details as needed
+        "PURE": "Premium sound quality with advanced features.",
         "STYLETTO": "Stylish and discreet hearing solutions.",
         "SILK": "Comfortable and nearly invisible fit."
     }
-    return descriptions.get(group, "No description available") #Added a default return
+    return descriptions.get(group, "No description available")
+
 if __name__ == "__main__":
     main()
