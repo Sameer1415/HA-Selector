@@ -118,9 +118,12 @@ def main():
         return
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
-    model_names = sorted(group_df["Model Name"].dropna().unique())
+    group_df = group_df.sort_values(by="Price", ascending=False)  # Sort by Price descending
+
+    model_names = sorted(group_df["Model Name"].dropna().unique(), key=lambda x: group_df[group_df["Model Name"] == x]["Price"].max(), reverse=True)
 
     st.markdown(f"### All Models in {selected_group}")
+    st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
     for model in model_names:
         model_row = group_df[group_df["Model Name"] == model].iloc[0]
@@ -130,7 +133,6 @@ def main():
             st.markdown(
                 f"""
                 <div style="border:1px solid #ccc; padding:15px; border-radius:10px; background-color:#f9f9f9;">
-                    <p><strong>Quantity:</strong> {model_row['Quantity']}</p>
                     <p><strong>Channels:</strong> {model_row['Channels']}</p>
                     <p><strong>Price:</strong> ₹{model_row['Price']}</p>
                 </div>
