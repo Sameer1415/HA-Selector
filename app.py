@@ -205,17 +205,15 @@ def main():
         st.markdown(f"## All Models in {selected_group}")
         if selected_group == "ORION":
             st.markdown(
-                f"<div style='border: 2px solid #4CAF50; border-radius: 5px; padding: 10px; margin-bottom: 10px; background-color: #f0f8f4; color: #0c3001; font-size: 1.1em;'><strong>{selected_group}</strong></div>",
+                f"<div style='border: 2px solid #4CAF50; border-radius: 5px; padding: 10px; margin-bottom: 10px; background-color: #f0f8f4; color: #0c3001; font-size: 1.1em;'><strong>{selected_group}</strong><br>"
+                f"🔋 All-Day Rechargeable Power<br>"
+                f"🎧 Crystal Clear Speech in Quiet<br>"
+                f"🔊 Hear Voices Clearly in Noise<br>"
+                f"🎨 Stylish, Modern Design<br>"
+                f"💧 Sweat & Dust Resistant Build<br>"
+                f"⚙️ Auto-Adjusting Smart Sound</div>",
                 unsafe_allow_html=True
             )
-            st.markdown("""
-                - 🔋 All-Day Rechargeable Power
-                - 🎧 Crystal Clear Speech in Quiet
-                - 🔊 Hear Voices Clearly in Noise
-                - 🎨 Stylish, Modern Design
-                - 💧 Sweat & Dust Resistant Build
-                - ⚙️ Auto-Adjusting Smart Sound
-            """)
         model_names = group_df["Model Name"].dropna().unique()
         st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
