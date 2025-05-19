@@ -203,6 +203,15 @@ def main():
         group_df = group_df.sort_values(by="Price", ascending=False)
 
         st.markdown(f"## All Models in {selected_group}")
+        if selected_group == "ORION":
+            st.markdown("""
+                - 🔋 All-Day Rechargeable Power
+                - 🎧 Crystal Clear Speech in Quiet
+                - 🔊 Hear Voices Clearly in Noise
+                - 🎨 Stylish, Modern Design
+                - 💧 Sweat & Dust Resistant Build
+                - ⚙️ Auto-Adjusting Smart Sound
+            """)
         model_names = group_df["Model Name"].dropna().unique()
         st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
