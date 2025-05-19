@@ -204,6 +204,10 @@ def main():
 
         st.markdown(f"## All Models in {selected_group}")
         if selected_group == "ORION":
+            st.markdown(
+                f"<div style='border: 2px solid #4CAF50; border-radius: 5px; padding: 10px; margin-bottom: 10px; background-color: #f0f8f4; color: #0c3001; font-size: 1.1em;'><strong>{selected_group}</strong></div>",
+                unsafe_allow_html=True
+            )
             st.markdown("""
                 - 🔋 All-Day Rechargeable Power
                 - 🎧 Crystal Clear Speech in Quiet
