@@ -190,21 +190,12 @@ def main():
     st.markdown("## Select Model Group")
     group_cols = st.columns(len(model_groups))
     for i, group in enumerate(model_groups):
-        if group == "ORION":
-            orion_label = f"""
-                {group} <br>
-                🔋 All-Day Rechargeable Power <br>
-                🎧 Crystal Clear Speech in Quiet <br>
-                🔊 Hear Voices Clearly in Noise <br>
-                🎨 Stylish, Modern Design <br>
-                💧 Sweat & Dust Resistant Build <br>
-                ⚙️ Auto-Adjusting Smart Sound
-            """
-            if group_cols[i].button(label=orion_label, use_container_width=True):
-                st.session_state.selected_group = group
-        else:
-            if group_cols[i].button(group, use_container_width=True):
-                st.session_state.selected_group = group
+        group_label = f"""
+            {group} <br>
+            {get_group_description(group)}
+        """
+        if group_cols[i].button(label=group_label, use_container_width=True):
+            st.session_state.selected_group = group
 
     if "selected_group" not in st.session_state and model_groups:
         st.session_state.selected_group = model_groups[0]
@@ -228,5 +219,14 @@ def main():
         show_model_card(row)
         st.markdown("---")
 
+def get_group_description(group):
+    """Returns the description for each model group."""
+    descriptions = {
+        "ORION": "🔋 All-Day Rechargeable Power <br> 🎧 Crystal Clear Speech in Quiet <br> 🔊 Hear Voices Clearly in Noise <br> 🎨 Stylish, Modern Design <br> 💧 Sweat & Dust Resistant Build <br> ⚙️ Auto-Adjusting Smart Sound",
+        "PURE": "Premium sound quality with advanced features.",  # Add specific details as needed
+        "STYLETTO": "Stylish and discreet hearing solutions.",
+        "SILK": "Comfortable and nearly invisible fit."
+    }
+    return descriptions.get(group, "No description available") #Added a default return
 if __name__ == "__main__":
     main()
