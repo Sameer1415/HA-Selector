@@ -167,9 +167,9 @@ def main():
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
 
     # Separate IX, AX, and X models
-    ix_models = group_df[group_df["Model Name"].str.contains(r'\d+IX$')]
-    ax_models = group_df[group_df["Model Name"].str.contains(r'AX$')]
-    x_models = group_df[group_df["Model Name"].str.contains(r'X$')]
+    ix_models = group_df[group_df["Model Name"].str.contains(r'\d+IX$', regex=True)]
+    ax_models = group_df[group_df["Model Name"].str.contains(r'\d+AX$', regex=True)]
+    x_models = group_df[group_df["Model Name"].str.contains(r'\d+X$', regex=True)]
 
     # Sort each category by price in descending order
     ix_models_sorted = ix_models.sort_values(by="Price", ascending=False)
