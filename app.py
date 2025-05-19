@@ -189,12 +189,22 @@ def main():
 
     st.markdown("## Select Model Group")
     if model_groups: # Check if model_groups is not empty
+        cols = st.columns(len(model_groups))
         for i, group in enumerate(model_groups):
             if group == "ORION":
-                if st.button(label=f"{group}  \n🔋 All-Day Rechargeable Power \n🎧 Crystal Clear Speech in Quiet \n🔊 Hear Voices Clearly in Noise \n🎨 Stylish, Modern Design \n💧 Sweat & Dust Resistant Build \n⚙️ Auto-Adjusting Smart Sound"):
+                orion_label = f"""
+                    {group}
+                    🔋 All-Day Rechargeable Power
+                    🎧 Crystal Clear Speech in Quiet
+                    🔊 Hear Voices Clearly in Noise
+                    🎨 Stylish, Modern Design
+                    💧 Sweat & Dust Resistant Build
+                    ⚙️ Auto-Adjusting Smart Sound
+                """
+                if cols[i].button(label=orion_label):
                     st.session_state.selected_group = group
             else:
-                if st.button(group):
+                if cols[i].button(group):
                     st.session_state.selected_group = group
 
         if "selected_group" not in st.session_state:
