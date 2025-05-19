@@ -193,18 +193,18 @@ def main():
         for i, group in enumerate(model_groups):
             if group == "ORION":
                 orion_label = f"""
-                    {group}
-                    🔋 All-Day Rechargeable Power
-                    🎧 Crystal Clear Speech in Quiet
-                    🔊 Hear Voices Clearly in Noise
-                    🎨 Stylish, Modern Design
-                    💧 Sweat & Dust Resistant Build
+                    {group} <br>
+                    🔋 All-Day Rechargeable Power <br>
+                    🎧 Crystal Clear Speech in Quiet <br>
+                    🔊 Hear Voices Clearly in Noise <br>
+                    🎨 Stylish, Modern Design <br>
+                    💧 Sweat & Dust Resistant Build <br>
                     ⚙️ Auto-Adjusting Smart Sound
                 """
-                if cols[i].button(label=orion_label):
+                if cols[i].button(label=orion_label, use_container_width=True):
                     st.session_state.selected_group = group
             else:
-                if cols[i].button(group):
+                if cols[i].button(group, use_container_width=True):
                     st.session_state.selected_group = group
 
         if "selected_group" not in st.session_state:
