@@ -178,4 +178,28 @@ def main():
         show_comparison_table(compare_df)
 
 if __name__ == "__main__":
+    # ---- Group Selection with Image Preview ----
+st.markdown("## Select Model Group")
+
+group_cols = st.columns(len(model_groups))
+for i, group in enumerate(model_groups):
+    if group_cols[i].button(group):
+        st.session_state.selected_group = group
+
+# Set default group if not already selected
+if "selected_group" not in st.session_state and model_groups:
+    st.session_state.selected_group = model_groups[0]
+
+selected_group = st.session_state.get("selected_group")
+if not selected_group:
+    return
+
+# Optional: Display image for specific group
+if selected_group == "ORION":
+    st.image(
+        "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg?rev=c993db8a8cb6470692b613a45f701c47&extension=webp&hash=5F307282D586208C92013BA20A652A59",
+        caption="ORION Model Preview",
+        use_column_width=True
+    )
+
     main()
