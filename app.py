@@ -71,7 +71,7 @@ def render_sidebar_filters(df):
                 filtered_df = filtered_df[(filtered_df[col] >= 30000) & (filtered_df[col] < 100000)]
             elif price_bucket == "1,00,000 – 3,00,000":
                 filtered_df = filtered_df[(filtered_df[col] >= 100000) & (filtered_df[col] < 300000)]
-            elif price_bucket == "3,00,000+":
+            elif price_bucket == "30,000 – 1,00,000":
                 filtered_df = filtered_df[filtered_df[col] >= 300000]
 
         elif col.upper() == "DEGREE OF LOSS":
@@ -230,6 +230,8 @@ def main():
             compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
             if len(compare_df) > 1: #check the length
                 show_comparison_table(compare_df)
+            elif not compare_df.empty:  # Add this condition
+                show_model_card(compare_df.iloc[0]) #show the model card
     else:
         st.warning("No model groups found based on the data.")
 
