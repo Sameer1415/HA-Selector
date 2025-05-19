@@ -1,19 +1,26 @@
+import streamlit as pd
 import streamlit as st
-import pandas as pd
 
 # ---- Load Data ----
 @st.cache_data
 def load_data():
+    """
+    Loads data from 'sourcedata.xlsx', handles errors, and preprocesses the data.
+    """
     try:
         df = pd.read_excel("sourcedata.xlsx")
         df.columns = df.columns.str.strip()
 
+        # Handle the case where both 'Augmented Focus.1' and 'Augmented Focus' exist
         if "Augmented Focus.1" in df.columns and "Augmented Focus" in df.columns:
             df["Augmented Focus"] = df["Augmented Focus"].combine_first(df["Augmented Focus.1"])
             df.drop(columns=["Augmented Focus.1"], inplace=True)
 
-        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
+        # Convert 'Price' to numeric, handling commas and missing values
+        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(
+            0).astype(int)
 
+        # Convert object type columns to uppercase and strip whitespace
         for col in df.select_dtypes(include="object").columns:
             df[col] = df[col].astype(str).str.strip().str.upper()
 
@@ -24,6 +31,15 @@ def load_data():
 
 # ---- Sidebar Filters ----
 def render_sidebar_filters(df):
+    """
+    Renders the sidebar filters and returns the filtered DataFrame.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+
+    Returns:
+        pd.DataFrame: The filtered DataFrame.
+    """
     st.sidebar.header("🎛️ Filters")
     filtered_df = df.copy()
 
@@ -53,7 +69,7 @@ def render_sidebar_filters(df):
                 filtered_df = filtered_df[(filtered_df[col] >= 30000) & (filtered_df[col] < 100000)]
             elif price_bucket == "1,00,000 – 3,00,000":
                 filtered_df = filtered_df[(filtered_df[col] >= 100000) & (filtered_df[col] < 300000)]
-            elif price_bucket == "3,00,000+":
+            elif price_bucket == "30,000 – 1,00,000":
                 filtered_df = filtered_df[filtered_df[col] >= 300000]
 
         elif col.upper() == "DEGREE OF LOSS":
@@ -83,8 +99,15 @@ def render_sidebar_filters(df):
 
     return filtered_df
 
+
 # ---- Show Individual Model Card ----
 def show_model_card(row):
+    """
+    Displays an individual model's information.
+
+    Args:
+        row (pd.Series): A row from the DataFrame representing a model.
+    """
     st.markdown(f"### 📌 {row['Model Name']}")
     st.markdown(f"💰 **Price:** ₹{row['Price']:,}")
     st.markdown(f"🔢 **Channels:** {row.get('Channels', 'N/A')}")
@@ -101,12 +124,25 @@ def show_model_card(row):
                 icon = str(val)
             st.markdown(f"- **{col}**: {icon}")
 
+
 # ---- Show comparison table ----
 def show_comparison_table(models_df):
+    """
+    Displays a comparison table of model features.
+
+    Args:
+        models_df (pd.DataFrame): DataFrame containing the models to compare.
+    """
     st.markdown("## 📊 Feature Comparison")
 
+    # Handle empty DataFrame
+    if models_df.empty:
+        st.warning("No models to compare.")
+        return
+
     comparison_cols = ["Channels", "Price"]
-    other_cols = [col for col in models_df.columns if col not in ["Model Name", "Quantity", "Degree of loss", "Model Group"] + comparison_cols]
+    other_cols = [col for col in models_df.columns if
+                  col not in ["Model Name", "Quantity", "Degree of loss", "Model Group"] + comparison_cols]
     comparison_cols += other_cols
 
     comparison_data = pd.DataFrame(index=comparison_cols)
@@ -115,7 +151,9 @@ def show_comparison_table(models_df):
         values = []
         for col in comparison_cols:
             val = row.get(col, "")
-            if str(val).upper() == "YES":
+            if pd.isna(val):  # Check for null values
+                values.append("")
+            elif str(val).upper() == "YES":
                 values.append("✅")
             elif str(val).upper() == "NO":
                 values.append("❌")
@@ -129,8 +167,12 @@ def show_comparison_table(models_df):
 
     st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
 
+
 # ---- Main App ----
 def main():
+    """
+    Main function to run the Streamlit app.
+    """
     st.set_page_config(page_title="Titan HA Selector", layout="wide")
     st.title("Titan HA Products")
 
@@ -172,10 +214,11 @@ def main():
         st.markdown("---")
 
     # Show comparison in chunks of 4
-    model_chunks = [model_names[i:i+4] for i in range(0, len(model_names), 4)]
+    model_chunks = [model_names[i:i + 4] for i in range(0, len(model_names), 4)]
     for chunk in model_chunks:
         compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
-        show_comparison_table(compare_df)
+        if len(compare_df) > 1:  # check the length
+            show_comparison_table(compare_df)
 
 if __name__ == "__main__":
     main()
