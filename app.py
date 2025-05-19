@@ -12,9 +12,7 @@ def load_data():
             df["Augmented Focus"] = df["Augmented Focus"].combine_first(df["Augmented Focus.1"])
             df.drop(columns=["Augmented Focus.1"], inplace=True)
 
-        df["Price"] = pd.to_numeric(
-            df["Price"].astype(str).str.replace(",", ""), errors="coerce"
-        ).fillna(0).astype(int)
+        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
 
         for col in df.select_dtypes(include="object").columns:
             df[col] = df[col].astype(str).str.strip().str.upper()
@@ -85,6 +83,30 @@ def render_sidebar_filters(df):
 
     return filtered_df
 
+# ---- Comparison Table ----
+def show_comparison_table(models_df):
+    st.markdown("## 📊 Feature Comparison")
+
+    comparison_cols = ["Channels", "Price"]
+    other_cols = [col for col in models_df.columns if col not in ["Model Name", "Quantity", "Degree of loss", "Model Group"] + comparison_cols]
+    comparison_cols += other_cols
+
+    comparison_data = pd.DataFrame(index=comparison_cols)
+
+    for _, row in models_df.iterrows():
+        values = []
+        for col in comparison_cols:
+            val = str(row.get(col, "")).upper()
+            if val == "YES":
+                values.append("✅")
+            elif val == "NO":
+                values.append("❌")
+            else:
+                values.append(val)
+        comparison_data[row["Model Name"]] = values
+
+    st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
+
 # ---- Main App ----
 def main():
     st.set_page_config(page_title="Titan HA Selector", layout="wide")
@@ -109,7 +131,6 @@ def main():
         if group_cols[i].button(group):
             st.session_state.selected_group = group
 
-    # Set default selection if not set
     if "selected_group" not in st.session_state and model_groups:
         st.session_state.selected_group = model_groups[0]
 
@@ -118,14 +139,24 @@ def main():
         return
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
-    group_df = group_df.sort_values(by="Price", ascending=False)  # Sort by Price descending
+    group_df = group_df.sort_values(by="Price", ascending=False)
 
-    model_names = sorted(group_df["Model Name"].dropna().unique(), key=lambda x: group_df[group_df["Model Name"] == x]["Price"].max(), reverse=True)
+    model_names = sorted(group_df["Model Name"].dropna().unique(),
+                         key=lambda x: group_df[group_df["Model Name"] == x]["Price"].max(), reverse=True)
 
     st.markdown(f"### All Models in {selected_group}")
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
+    selected_models = st.multiselect("📌 Select up to 4 models for comparison:", model_names, max_selections=4)
+
+    if selected_models:
+        compare_df = group_df[group_df["Model Name"].isin(selected_models)].drop_duplicates("Model Name")
+        show_comparison_table(compare_df)
+
     for model in model_names:
+        if model in selected_models:
+            continue
+
         model_row = group_df[group_df["Model Name"] == model].iloc[0]
 
         st.markdown(f"#### 🧩 {model}")
