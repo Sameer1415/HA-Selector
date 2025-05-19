@@ -220,18 +220,13 @@ def main():
     model_names = group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
-    if len(model_names) > 1:
-        # Show comparison in chunks of 4
-        model_chunks = [model_names[i:i + 4] for i in range(0, len(model_names), 4)]
-        for chunk in model_chunks:
-            compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
-            show_comparison_table(compare_df)
-    else:
-        for model_name in model_names:
-            row = group_df[group_df["Model Name"] == model_name].iloc[0]
-            show_model_card(row)
-            st.markdown("---")
+    # Show comparison table for all results
+    show_comparison_table(group_df.drop_duplicates("Model Name"))
+
+    for model_name in model_names:
+        row = group_df[group_df["Model Name"] == model_name].iloc[0]
+        show_model_card(row)
+        st.markdown("---")
 
 if __name__ == "__main__":
     main()
-
