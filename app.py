@@ -228,7 +228,8 @@ def main():
         model_chunks = [model_names[i:i+4] for i in range(0, len(model_names), 4)]
         for chunk in model_chunks:
             compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
-            show_comparison_table(compare_df)
+            if len(compare_df) > 1: #check the length
+                show_comparison_table(compare_df)
     else:
         st.warning("No model groups found based on the data.")
 
