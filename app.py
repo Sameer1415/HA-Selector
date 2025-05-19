@@ -166,19 +166,25 @@ def main():
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
 
-    # Define the desired order
-    order = ['7IX', '5IX', '3IX', 'AX', 'X']
-    group_df['Model_Order'] = group_df['Model Name'].str.extract(r'(\d?IX|AX|X)$', expand=False).map(lambda x: x if x in order else '')
-    group_df = group_df.sort_values(by=['Model_Order'], key=lambda x: x.map(lambda a: order.index(a) if a in order else len(order)), ascending=False)
+    # Separate IX, AX, and X models
+    ix_models = group_df[group_df["Model Name"].str.contains(r'\d+IX$')]
+    ax_models = group_df[group_df["Model Name"].str.contains(r'AX$')]
+    x_models = group_df[group_df["Model Name"].str.contains(r'X$')]
 
-    group_df = group_df.sort_values(by="Price", ascending=False)
+    # Sort each category by price in descending order
+    ix_models_sorted = ix_models.sort_values(by="Price", ascending=False)
+    ax_models_sorted = ax_models.sort_values(by="Price", ascending=False)
+    x_models_sorted = x_models.sort_values(by="Price", ascending=False)
+
+    # Concatenate the sorted dataframes
+    sorted_group_df = pd.concat([ix_models_sorted, ax_models_sorted, x_models_sorted], ignore_index=True)
 
     st.markdown(f"## All Models in {selected_group}")
-    model_names = group_df["Model Name"].dropna().unique()
+    model_names = sorted_group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
     for model_name in model_names:
-        row = group_df[group_df["Model Name"] == model_name].iloc[0]
+        row = sorted_group_df[sorted_group_df["Model Name"] == model_name].iloc[0]
         show_model_card(row)
         st.markdown("---")
 
