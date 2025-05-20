@@ -183,8 +183,8 @@ def main():
 
     for model_name in model_names:
         row = group_df[group_df["Model Name"] == model_name].iloc[0]
-        show_model_card(row)
-        st.markdown("---")
+        with st.expander(f"📌 {row['Model Name']}", expanded=True):
+            show_model_card(row)
 
     # Show comparison for all models in selected group
     st.markdown(f"## 🔄 Comparison Table for {selected_group}")
