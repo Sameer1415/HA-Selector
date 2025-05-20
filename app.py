@@ -216,25 +216,9 @@ def main():
 
     if len(model_names) > 1:
         st.markdown(f"## 🔄 Comparison Table for {selected_group}")
-        show_comparison_table(group_df.drop_duplicates("Model Name"))
+        # Remove 'Group Rank' from the columns used in the comparison table
+        show_comparison_table(group_df.drop_duplicates("Model Name").drop(columns=['Group Rank'], errors='ignore'))
 
 if __name__ == "__main__":
     main()
-```
 
-**Key Changes:**
-
-1.  **`get_model_number` Function:**
-    * The regular expression in `get_model_number` is updated to capture the suffix (IX, AX, or X) along with the number:  `r'(\d+)(IX|AX|X)'`
-    * The function now returns both the number and the suffix: `return int(match.group(1)), match.group(2)`
-
-2.  **Sorting Logic:**
-    * The `filtered_df` is sorted using both "Model Suffix" and "Model Number":
-        ```python
-        filtered_df.sort_values(by=["Group Rank", "Model Suffix", "Model Number"], ascending=[True, False, False], inplace=True)
-        ```
-    * The `group_df` is also sorted in the same way before displaying the models:
-        ```python
-        group_df['Model Number'], group_df['Model Suffix'] = zip(*group_df['Model Name'].map(get_model_number))
-        group_df.sort_values(by=["Model Suffix", "Model Number"], ascending=[False, False], inplace=True)
-        
