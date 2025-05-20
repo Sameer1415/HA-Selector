@@ -103,6 +103,9 @@ def show_model_card(row):
 
 # ---- Show comparison table ----
 def show_comparison_table(models_df):
+    if models_df.shape[0] < 2:
+        return
+
     st.markdown("## 📊 Feature Comparison")
 
     feature_descriptions = {
@@ -132,7 +135,7 @@ def show_comparison_table(models_df):
             elif str(val).upper() == "NO":
                 values.append("❌")
             elif col == "Channels":
-                values.append(str(int(val)) if pd.notnull(val) else "")
+                values.append(str(int(val)) if pd.notnull(val) and str(val).isdigit() else str(val))
             elif col == "Price":
                 values.append(f"₹{int(val):,}")
             else:
@@ -183,12 +186,13 @@ def main():
 
     for model_name in model_names:
         row = group_df[group_df["Model Name"] == model_name].iloc[0]
-        with st.expander(f"📌 {row['Model Name']}", expanded=True):
-            show_model_card(row)
+        show_model_card(row)
+        st.markdown("---")
 
-    # Show comparison for all models in selected group
-    st.markdown(f"## 🔄 Comparison Table for {selected_group}")
-    show_comparison_table(group_df.drop_duplicates("Model Name"))
+    # Show comparison for all models in selected group only if more than one model exists
+    if len(model_names) > 1:
+        st.markdown(f"## 🔄 Comparison Table for {selected_group}")
+        show_comparison_table(group_df.drop_duplicates("Model Name"))
 
 if __name__ == "__main__":
     main()
