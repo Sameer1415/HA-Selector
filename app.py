@@ -49,13 +49,13 @@ def render_sidebar_filters(df):
         elif col.upper() == "PRICE":
             price_bucket = st.sidebar.radio(
                 "Price Range",
-                options=["30,000 – 1,00,000", "1,00,000 – 3,00,000", "3,00,000+"],
+                options=["30,000 – 1,00,000", "1,00,000 – 300,000", "300,000+"],
             )
             if price_bucket == "30,000 – 1,00,000":
                 filtered_df = filtered_df[(filtered_df[col] >= 30000) & (filtered_df[col] < 100000)]
-            elif price_bucket == "1,00,000 – 3,00,000":
+            elif price_bucket == "1,00,000 – 300,000":
                 filtered_df = filtered_df[(filtered_df[col] >= 100000) & (filtered_df[col] < 300000)]
-            elif price_bucket == "3,00,000+":
+            elif price_bucket == "300,000+":
                 filtered_df = filtered_df[filtered_df[col] >= 300000]
 
         elif col.upper() == "DEGREE OF LOSS":
@@ -216,8 +216,9 @@ def main():
 
     if len(model_names) > 1:
         st.markdown(f"## 🔄 Comparison Table for {selected_group}")
-        # Remove 'Group Rank' from the columns used in the comparison table
-        show_comparison_table(group_df.drop_duplicates("Model Name").drop(columns=['Group Rank'], errors='ignore'))
+        # Remove 'Group Rank', 'Model Number', and 'Model Suffix' from the columns used in the comparison table
+        show_comparison_table(group_df.drop_duplicates("Model Name").drop(columns=['Group Rank', 'Model Number', 'Model Suffix'], errors='ignore'))
 
 if __name__ == "__main__":
     main()
+
