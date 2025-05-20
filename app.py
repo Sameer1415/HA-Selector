@@ -89,6 +89,12 @@ def show_model_card(row):
     st.markdown(f"💰 **Price:** ₹{row['Price']:,}")
     st.markdown(f"🔢 **Channels:** {row.get('Channels', 'N/A')}")
 
+    image_path = f"images/{row['Model Name'].strip().upper().replace(' ', '_')}.png"
+    try:
+        st.image(image_path, use_column_width=True)
+    except Exception:
+        st.info("Image not available for this model.")
+
     excluded = {"Model Name", "Price", "Channels", "Quantity", "Degree of loss", "Model Group"}
     for col in row.index:
         if col not in excluded:
@@ -191,4 +197,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
