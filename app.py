@@ -105,6 +105,17 @@ def show_model_card(row):
 def show_comparison_table(models_df):
     st.markdown("## 📊 Feature Comparison")
 
+    feature_descriptions = {
+        "Channels": "The number of frequency channels for sound processing.",
+        "Price": "Cost of the model in Indian Rupees (₹).",
+        "Bluetooth": "Supports wireless audio streaming via Bluetooth.",
+        "Rechargeable": "Contains built-in rechargeable battery.",
+        "Waterproof": "Water-resistant or waterproof build for durability.",
+        "Augmented Focus": "Enhances speech clarity in noise.",
+        "Noise Cancellation": "Reduces background noise for clearer hearing.",
+        "Telecoil": "Improves sound reception on telephones and public systems.",
+    }
+
     comparison_cols = ["Channels", "Price"]
     other_cols = [col for col in models_df.columns if col not in ["Model Name", "Quantity", "Degree of loss", "Model Group"] + comparison_cols]
     comparison_cols += other_cols
@@ -126,6 +137,9 @@ def show_comparison_table(models_df):
             else:
                 values.append(str(val))
         comparison_data[row["Model Name"]] = values
+
+    descriptions = [feature_descriptions.get(feature, "") for feature in comparison_data.index]
+    comparison_data.insert(0, "Description", descriptions)
 
     st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
 
@@ -171,11 +185,10 @@ def main():
         show_model_card(row)
         st.markdown("---")
 
-    # Show comparison in chunks of 4
-    model_chunks = [model_names[i:i+4] for i in range(0, len(model_names), 4)]
-    for chunk in model_chunks:
-        compare_df = group_df[group_df["Model Name"].isin(chunk)].drop_duplicates("Model Name")
-        show_comparison_table(compare_df)
+    # Show comparison for all models in selected group
+    st.markdown(f"## 🔄 Comparison Table for {selected_group}")
+    show_comparison_table(group_df.drop_duplicates("Model Name"))
 
 if __name__ == "__main__":
     main()
+
