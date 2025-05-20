@@ -210,7 +210,7 @@ def main():
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
     for model_name in model_names:
-        row = group_df[group_df["Model Name"] == model_name].iloc[0]
+        row = group_df.drop(columns=['Group Rank', 'Model Number', 'Model Suffix'], errors='ignore')[group_df["Model Name"] == model_name].iloc[0]
         show_model_card(row)
         st.markdown("---")
 
