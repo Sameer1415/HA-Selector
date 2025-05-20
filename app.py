@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 
 # ---- Load Data ----
 @st.cache_data
@@ -162,7 +163,13 @@ def main():
         return
 
     filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
-    model_groups = sorted(filtered_df["Model Group"].dropna().unique())
+
+    # ---- Custom sorting of model groups ----
+    group_order = ["IX", "AX", "X", "ORION"]
+    filtered_df["Group Rank"] = filtered_df["Model Group"].apply(lambda x: group_order.index(x) if x in group_order else len(group_order))
+    filtered_df.sort_values(by=["Group Rank", "Price"], ascending=[True, False], inplace=True)
+
+    model_groups = filtered_df["Model Group"].dropna().unique()
 
     st.markdown("## Select Model Group")
     group_cols = st.columns(len(model_groups))
@@ -170,12 +177,17 @@ def main():
         if group_cols[i].button(group):
             st.session_state.selected_group = group
 
-    if "selected_group" not in st.session_state and model_groups:
+    if "selected_group" not in st.session_state and len(model_groups):
         st.session_state.selected_group = model_groups[0]
 
     selected_group = st.session_state.get("selected_group")
     if not selected_group:
         return
+
+    # ---- Show image for selected group (if available) ----
+    image_path = f"images/{selected_group}.png"
+    if os.path.exists(image_path):
+        st.image(image_path, use_column_width=True)
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
     group_df = group_df.sort_values(by="Price", ascending=False)
@@ -189,7 +201,6 @@ def main():
         show_model_card(row)
         st.markdown("---")
 
-    # Show comparison for all models in selected group only if more than one model exists
     if len(model_names) > 1:
         st.markdown(f"## 🔄 Comparison Table for {selected_group}")
         show_comparison_table(group_df.drop_duplicates("Model Name"))
