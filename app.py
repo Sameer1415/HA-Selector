@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import re
 
 # ---- Load Data ----
 @st.cache_data
@@ -148,6 +149,13 @@ def show_comparison_table(models_df):
 
     st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
 
+# ---- Function to extract model number for sorting ----
+def get_model_number(model_name):
+    match = re.search(r'(\d+)(IX|AX|X)', model_name)
+    if match:
+        return int(match.group(1)), match.group(2)  # Returns (number, suffix)
+    return 0, ''
+
 # ---- Main App ----
 def main():
     st.set_page_config(page_title="Titan HA Selector", layout="wide")
@@ -167,7 +175,10 @@ def main():
     # ---- Custom sorting of model groups ----
     group_order = ["IX", "AX", "X", "ORION"]
     filtered_df["Group Rank"] = filtered_df["Model Group"].apply(lambda x: group_order.index(x) if x in group_order else len(group_order))
-    filtered_df.sort_values(by=["Group Rank", "Price"], ascending=[True, False], inplace=True)
+
+    # Extract model number and suffix for sorting
+    filtered_df['Model Number'], filtered_df['Model Suffix'] = zip(*filtered_df['Model Name'].map(get_model_number))
+    filtered_df.sort_values(by=["Group Rank", "Model Suffix", "Model Number"], ascending=[True, False, False], inplace=True)
 
     model_groups = filtered_df["Model Group"].dropna().unique()
 
@@ -189,10 +200,12 @@ def main():
     if os.path.exists(image_path):
         st.image(image_path, use_column_width=True)
 
-    group_df = filtered_df[filtered_df["Model Group"] == selected_group]
-    group_df = group_df.sort_values(by="Price", ascending=False)
+    group_df = filtered_df[filtered_df["Model Group"] == selected_group].copy()
+     # Sort the group dataframe
+    group_df['Model Number'], group_df['Model Suffix'] = zip(*group_df['Model Name'].map(get_model_number))
+    group_df.sort_values(by=["Model Suffix", "Model Number"], ascending=[False, False], inplace=True)
 
-    st.markdown(f"## All Models in {selected_group} (Sorted by Price - Descending)")
+    st.markdown(f"## All Models in {selected_group} (Sorted by Model Number - Descending)")
     model_names = group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
@@ -207,3 +220,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+**Key Changes:**
+
+1.  **`get_model_number` Function:**
+    * The regular expression in `get_model_number` is updated to capture the suffix (IX, AX, or X) along with the number:  `r'(\d+)(IX|AX|X)'`
+    * The function now returns both the number and the suffix: `return int(match.group(1)), match.group(2)`
+
+2.  **Sorting Logic:**
+    * The `filtered_df` is sorted using both "Model Suffix" and "Model Number":
+        ```python
+        filtered_df.sort_values(by=["Group Rank", "Model Suffix", "Model Number"], ascending=[True, False, False], inplace=True)
+        ```
+    * The `group_df` is also sorted in the same way before displaying the models:
+        ```python
+        group_df['Model Number'], group_df['Model Suffix'] = zip(*group_df['Model Name'].map(get_model_number))
+        group_df.sort_values(by=["Model Suffix", "Model Number"], ascending=[False, False], inplace=True)
+        
