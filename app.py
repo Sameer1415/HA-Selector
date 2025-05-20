@@ -205,7 +205,7 @@ def main():
     group_df['Model Number'], group_df['Model Suffix'] = zip(*group_df['Model Name'].map(get_model_number))
     group_df.sort_values(by=["Model Suffix", "Model Number"], ascending=[False, False], inplace=True)
 
-    st.markdown(f"## All Models in {selected_group} (Sorted by Model Number - Descending)")
+    st.markdown(f"## All Models in {selected_group}")
     model_names = group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
