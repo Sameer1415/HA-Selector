@@ -192,7 +192,7 @@ def main():
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
     group_df = group_df.sort_values(by="Price", ascending=False)
 
-    st.markdown(f"## All Models in {selected_group}")
+    st.markdown(f"## All Models in {selected_group} (Sorted by Price - Descending)")
     model_names = group_df["Model Name"].dropna().unique()
     st.markdown(f"🔍 **{len(model_names)} result(s) found**")
 
