@@ -89,12 +89,6 @@ def show_model_card(row):
     st.markdown(f"💰 **Price:** ₹{row['Price']:,}")
     st.markdown(f"🔢 **Channels:** {row.get('Channels', 'N/A')}")
 
-    image_path = f"images/{row['Model Name'].strip().upper().replace(' ', '_')}.png"
-    try:
-        st.image(image_path, use_column_width=True)
-    except Exception:
-        st.info("Image not available for this model.")
-
     excluded = {"Model Name", "Price", "Channels", "Quantity", "Degree of loss", "Model Group"}
     for col in row.index:
         if col not in excluded:
@@ -114,12 +108,13 @@ def show_comparison_table(models_df):
     feature_descriptions = {
         "Channels": "The number of frequency channels for sound processing.",
         "Price": "Cost of the model in Indian Rupees (₹).",
-        "Bluetooth": "Supports wireless audio streaming via Bluetooth.",
-        "Rechargeable": "Contains built-in rechargeable battery.",
-        "Waterproof": "Water-resistant or waterproof build for durability.",
-        "Augmented Focus": "Enhances speech clarity in noise.",
-        "Noise Cancellation": "Reduces background noise for clearer hearing.",
-        "Telecoil": "Improves sound reception on telephones and public systems.",
+        "Android and iOS Streaming": "Direct audio streaming from both Android and Apple devices for calls, music, and more.",
+        "Bluetooth": "Wireless connectivity for direct streaming and connection to the Signia app.",
+        "Augmented Focus": "Two processors separate speech for clarity and surrounding sounds for a natural experience in noise.",
+        "Echo Shield": "Reduces echoes and reverberation in challenging acoustic environments for clearer sound.",
+        "Tinnitus Manager": "Offers various sound therapy options, including Notch Therapy, to help manage tinnitus.",
+        "HD Music": "Enhances the sound quality for non-streamed music listening.",
+        "Noise Management": "Advanced technology to reduce background noise and improve speech clarity."
     }
 
     comparison_cols = ["Channels", "Price"]
