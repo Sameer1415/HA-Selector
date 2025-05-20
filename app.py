@@ -161,8 +161,12 @@ def main():
         st.warning("No products match your filters.")
         return
 
-    filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
-    model_groups = sorted(filtered_df["Model Group"].dropna().unique())
+    filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(IX|AX|X|ORION)", expand=False).str.upper()
+    sort_order = pd.CategoricalDtype(categories=["IX", "AX", "X", "ORION"], ordered=True)
+    filtered_df["Model Group"] = filtered_df["Model Group"].astype(sort_order)
+    filtered_df = filtered_df.sort_values(by=["Model Group", "Price"], ascending=[True, False])
+
+    model_groups = filtered_df["Model Group"].dropna().unique()
 
     st.markdown("## Select Model Group")
     group_cols = st.columns(len(model_groups))
@@ -170,7 +174,7 @@ def main():
         if group_cols[i].button(group):
             st.session_state.selected_group = group
 
-    if "selected_group" not in st.session_state and model_groups:
+    if "selected_group" not in st.session_state and len(model_groups) > 0:
         st.session_state.selected_group = model_groups[0]
 
     selected_group = st.session_state.get("selected_group")
@@ -178,7 +182,6 @@ def main():
         return
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group]
-    group_df = group_df.sort_values(by="Price", ascending=False)
 
     st.markdown(f"## All Models in {selected_group}")
     model_names = group_df["Model Name"].dropna().unique()
@@ -189,7 +192,6 @@ def main():
         show_model_card(row)
         st.markdown("---")
 
-    # Show comparison for all models in selected group only if more than one model exists
     if len(model_names) > 1:
         st.markdown(f"## 🔄 Comparison Table for {selected_group}")
         show_comparison_table(group_df.drop_duplicates("Model Name"))
