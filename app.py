@@ -153,7 +153,7 @@ def show_comparison_table(models_df):
 def get_model_number(model_name):
     match = re.search(r'(\d+)(IX|AX|X)', model_name)
     if match:
-        return int(match.group(1)), match.group(2)  # Returns (number, suffix)
+        return int(match.group(1)), match.group(2)
     return 0, ''
 
 # ---- Main App ----
@@ -172,11 +172,10 @@ def main():
 
     filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
 
-    # ---- Custom sorting of model groups ----
+    # Custom sort order
     group_order = ["IX", "AX", "X", "ORION"]
     filtered_df["Group Rank"] = filtered_df["Model Group"].apply(lambda x: group_order.index(x) if x in group_order else len(group_order))
 
-    # Extract model number and suffix for sorting
     filtered_df['Model Number'], filtered_df['Model Suffix'] = zip(*filtered_df['Model Name'].map(get_model_number))
     filtered_df.sort_values(by=["Group Rank", "Model Suffix", "Model Number"], ascending=[True, False, False], inplace=True)
 
@@ -195,13 +194,19 @@ def main():
     if not selected_group:
         return
 
-    # ---- Show image for selected group (if available) ----
-    image_path = f"images/{selected_group}.png"
-    if os.path.exists(image_path):
-        st.image(image_path, use_column_width=True)
+    # ---- Show image for selected group ----
+    if selected_group == "ORION":
+        st.image(
+            "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg?rev=c993db8a8cb6470692b613a45f701c47&extension=webp&hash=5F307282D586208C92013BA20A652A59",
+            caption="Orion Charge&Go RIC",
+            use_column_width=True
+        )
+    else:
+        image_path = f"images/{selected_group}.png"
+        if os.path.exists(image_path):
+            st.image(image_path, use_column_width=True)
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group].copy()
-     # Sort the group dataframe
     group_df['Model Number'], group_df['Model Suffix'] = zip(*group_df['Model Name'].map(get_model_number))
     group_df.sort_values(by=["Model Suffix", "Model Number"], ascending=[False, False], inplace=True)
 
@@ -216,7 +221,6 @@ def main():
 
     if len(model_names) > 1:
         st.markdown(f"## 🔄 Comparison Table for {selected_group}")
-        # Remove 'Group Rank', 'Model Number', and 'Model Suffix' from the columns used in the comparison table
         show_comparison_table(group_df.drop_duplicates("Model Name").drop(columns=['Group Rank', 'Model Number', 'Model Suffix'], errors='ignore'))
 
 if __name__ == "__main__":
