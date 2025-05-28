@@ -1,162 +1,53 @@
 import streamlit as st
 import pandas as pd
 import os
-import re
 
-# ---- Load Data ----
-@st.cache_data
+# Load and preprocess data
 def load_data():
-    try:
-        df = pd.read_excel("sourcedata.xlsx")
-        df.columns = df.columns.str.strip()
-
-        if "Augmented Focus.1" in df.columns and "Augmented Focus" in df.columns:
-            df["Augmented Focus"] = df["Augmented Focus"].combine_first(df["Augmented Focus.1"])
-            df.drop(columns=["Augmented Focus.1"], inplace=True)
-
-        df["Price"] = pd.to_numeric(df["Price"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
-
-        for col in df.select_dtypes(include="object").columns:
-            df[col] = df[col].astype(str).str.strip().str.upper()
-
+    uploaded_file = st.sidebar.file_uploader("Upload Titan Product CSV", type=["csv"])
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file)
+        df.dropna(subset=["Model Name"], inplace=True)
         return df
-    except FileNotFoundError:
-        st.error("❌ Error: 'sourcedata.xlsx' not found.")
-        return None
+    return None
 
-# ---- Sidebar Filters ----
+# Sidebar filters
 def render_sidebar_filters(df):
-    st.sidebar.header("🎛️ Filters")
+    st.sidebar.header("Filter Options")
     filtered_df = df.copy()
 
-    df_columns_upper = {col.upper(): col for col in df.columns}
-    preferred_order = ["QUANTITY", "DEGREE OF LOSS", "CHANNELS"]
-    ordered_cols = [df_columns_upper[col] for col in preferred_order if col in df_columns_upper]
-    other_columns = [col for col in df.columns if col not in ordered_cols and col.upper() != "MODEL NAME"]
-    filter_order = ordered_cols + other_columns
+    product_types = st.sidebar.multiselect("Select Product Type", df["Product Type"].dropna().unique())
+    if product_types:
+        filtered_df = filtered_df[filtered_df["Product Type"].isin(product_types)]
 
-    for col in filter_order:
-        if col not in filtered_df.columns:
-            continue
-
-        unique_vals = sorted(filtered_df[col].dropna().astype(str).unique())
-        label = "REQUIREMENT" if col.upper() == "DEGREE OF LOSS" else col
-
-        if col.upper() == "QUANTITY":
-            selected = st.sidebar.radio("Quantity", options=unique_vals, horizontal=True)
-            filtered_df = filtered_df[filtered_df[col] == selected]
-
-        elif col.upper() == "PRICE":
-            price_bucket = st.sidebar.radio(
-                "Price Range",
-                options=["30,000 – 1,00,000", "1,00,000 – 300,000", "300,000+"],
-            )
-            if price_bucket == "30,000 – 1,00,000":
-                filtered_df = filtered_df[(filtered_df[col] >= 30000) & (filtered_df[col] < 100000)]
-            elif price_bucket == "1,00,000 – 300,000":
-                filtered_df = filtered_df[(filtered_df[col] >= 100000) & (filtered_df[col] < 300000)]
-            elif price_bucket == "300,000+":
-                filtered_df = filtered_df[filtered_df[col] >= 300000]
-
-        elif col.upper() == "DEGREE OF LOSS":
-            requirement_order = ["MILD", "MODERATE", "SEVERE", "PROFOUND"]
-            selected = st.sidebar.selectbox("Requirement", options=requirement_order)
-            filter_map = {
-                "MILD": ["MILD", "MODERATE", "SEVERE", "PROFOUND"],
-                "MODERATE": ["MODERATE", "SEVERE", "PROFOUND"],
-                "SEVERE": ["SEVERE", "PROFOUND"],
-                "PROFOUND": ["PROFOUND"]
-            }
-            filtered_df = filtered_df[filtered_df[col].isin(filter_map[selected])]
-
-        elif set(unique_vals).issubset({"YES", "NO"}):
-            if st.sidebar.checkbox(label, value=False):
-                filtered_df = filtered_df[filtered_df[col] == "YES"]
-
-        elif col.upper() == "CHANNELS":
-            options = ["All"] + unique_vals
-            selected = st.sidebar.selectbox(label, options=options)
-            if selected != "All":
-                filtered_df = filtered_df[filtered_df[col] == selected]
-
-        else:
-            selected = st.sidebar.selectbox(label, options=unique_vals)
-            filtered_df = filtered_df[filtered_df[col] == selected]
+    price_range = st.sidebar.slider("Price Range", 0, int(df["MRP"].max()), (0, int(df["MRP"].max())))
+    filtered_df = filtered_df[(filtered_df["MRP"] >= price_range[0]) & (filtered_df["MRP"] <= price_range[1])]
 
     return filtered_df
 
-# ---- Show Individual Model Card ----
-def show_model_card(row):
-    st.markdown(f"### 📌 {row['Model Name']}")
-    st.markdown(f"💰 **Price:** ₹{row['Price']:,}")
-    st.markdown(f"🔢 **Channels:** {row.get('Channels', 'N/A')}")
-
-    excluded = {"Model Name", "Price", "Channels", "Quantity", "Degree of loss", "Model Group"}
-    for col in row.index:
-        if col not in excluded:
-            val = row[col]
-            if str(val).upper() == "YES":
-                icon = "✅"
-            elif str(val).upper() == "NO":
-                icon = "❌"
-            else:
-                icon = str(val)
-            st.markdown(f"- **{col}**: {icon}")
-
-# ---- Show comparison table ----
-def show_comparison_table(models_df):
-    if models_df.shape[0] < 2:
-        return
-
-    st.markdown("## 📊 Feature Comparison")
-
-    feature_descriptions = {
-        "Channels": "The number of frequency channels for sound processing.",
-        "Price": "Cost of the model in Indian Rupees (₹).",
-        "Android and iOS Streaming": "Direct audio streaming from both Android and Apple devices for calls, music, and more.",
-        "Bluetooth": "Wireless connectivity for direct streaming and connection to the Signia app.",
-        "Augmented Focus": "Two processors separate speech for clarity and surrounding sounds for a natural experience in noise.",
-        "Echo Shield": "Reduces echoes and reverberation in challenging acoustic environments for clearer sound.",
-        "Tinnitus Manager": "Offers various sound therapy options, including Notch Therapy, to help manage tinnitus.",
-        "HD Music": "Enhances the sound quality for non-streamed music listening.",
-        "Noise Management": "Advanced technology to reduce background noise and improve speech clarity."
-    }
-
-    comparison_cols = ["Channels", "Price"]
-    other_cols = [col for col in models_df.columns if col not in ["Model Name", "Quantity", "Degree of loss", "Model Group"] + comparison_cols]
-    comparison_cols += other_cols
-
-    comparison_data = pd.DataFrame(index=comparison_cols)
-
-    for _, row in models_df.iterrows():
-        values = []
-        for col in comparison_cols:
-            val = row.get(col, "")
-            if str(val).upper() == "YES":
-                values.append("✅")
-            elif str(val).upper() == "NO":
-                values.append("❌")
-            elif col == "Channels":
-                values.append(str(int(val)) if pd.notnull(val) and str(val).isdigit() else str(val))
-            elif col == "Price":
-                values.append(f"₹{int(val):,}")
-            else:
-                values.append(str(val))
-        comparison_data[row["Model Name"]] = values
-
-    descriptions = [feature_descriptions.get(feature, "") for feature in comparison_data.index]
-    comparison_data.insert(0, "Description", descriptions)
-
-    st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
-
-# ---- Function to extract model number for sorting ----
-def get_model_number(model_name):
-    match = re.search(r'(\d+)(IX|AX|X)', model_name)
+# Extract model number and suffix
+def get_model_number(name):
+    import re
+    match = re.search(r"(\d+)([A-Z]*)", name.upper())
     if match:
         return int(match.group(1)), match.group(2)
-    return 0, ''
+    return 0, ""
 
-# ---- Main App ----
+# Display model card
+def show_model_card(row):
+    st.subheader(row["Model Name"])
+    st.write(f"**Product Type:** {row['Product Type']}")
+    st.write(f"**MRP:** ₹{row['MRP']:,}")
+    st.write(f"**Battery:** {row['Battery']}" if 'Battery' in row else "")
+    st.write(f"**Fitting Range:** {row['Fitting Range']}" if 'Fitting Range' in row else "")
+    st.write(f"**Technology Level:** {row['Technology Level']}" if 'Technology Level' in row else "")
+    if 'Key Features' in row and pd.notna(row['Key Features']):
+        st.markdown(f"**Key Features:** {row['Key Features']}")
+
+# Comparison table
+def show_comparison_table(df):
+    st.dataframe(df.set_index("Model Name"))
+
 def main():
     st.set_page_config(page_title="Titan HA Selector", layout="wide")
     st.title("Titan HA Products")
@@ -172,7 +63,6 @@ def main():
 
     filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
 
-    # Custom sort order
     group_order = ["IX", "AX", "X", "ORION"]
     filtered_df["Group Rank"] = filtered_df["Model Group"].apply(lambda x: group_order.index(x) if x in group_order else len(group_order))
 
@@ -194,13 +84,16 @@ def main():
     if not selected_group:
         return
 
-    # ---- Show image for selected group ----
-    if selected_group == "ORION":
-        st.image(
-            "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg?rev=c993db8a8cb6470692b613a45f701c47&extension=webp&hash=5F307282D586208C92013BA20A652A59",
-            caption="Orion Charge&Go RIC",
-            use_column_width=True
-        )
+    # Show image for selected group
+    group_images = {
+        "ORION": "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg?rev=c993db8a8cb6470692b613a45f701c47&extension=webp&hash=5F307282D586208C92013BA20A652A59",
+        "PURE": "https://cdn.signia.net/-/media/signia/global/images/products/signia-ax/pure-chargego-ax/pure-charge-go-ax_graphite_standard-charger_1920x1080.jpg?w=1900&rev=4267d686857b4e5ea44e31f288945288&extension=webp&hash=75060B7C704F1EA9AC83983E9E37B5B5",
+        "SILK": "https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/silk-chargego-ix/signia-ix_silk-chgo_hearing-aids-out-of-charger_circle_400x400.png?w=1900&rev=3711106411534e0a95bc417926f4baff&extension=webp&hash=0C6D82637204A9A70859375B12A2A464"
+    }
+
+    image_url = group_images.get(selected_group)
+    if image_url:
+        st.image(image_url, caption=f"{selected_group.title()} Image", use_column_width=True)
     else:
         image_path = f"images/{selected_group}.png"
         if os.path.exists(image_path):
