@@ -186,31 +186,37 @@ def main():
         if group_cols[i].button(group):
             st.session_state.selected_group = group
 
-    if "selected_group" not in st.session_state and len(model_groups):
+    if len(model_groups) == 1:
+        st.session_state.selected_group = model_groups[0]
+    elif "selected_group" not in st.session_state or st.session_state.selected_group not in model_groups:
         st.session_state.selected_group = model_groups[0]
 
     selected_group = st.session_state.get("selected_group")
     if not selected_group:
         return
 
+    if selected_group not in model_groups:
+        st.session_state.selected_group = model_groups[0]
+        selected_group = st.session_state.selected_group
+
     # ---- Show image for selected group ----
     if selected_group == "ORION":
         st.image(
             "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg",
             caption="Orion Charge&Go RIC",
-            use_container_width=True
+            width=300
         )
     elif selected_group == "PURE":
         st.image(
             "https://cdn.signia.net/-/media/signia/global/images/products/signia-ax/pure-chargego-ax/pure-charge-go-ax_graphite_standard-charger_1920x1080.jpg",
             caption="Pure Charge&Go AX",
-            use_container_width=True
+            width=300
         )
     elif selected_group == "SILK":
         st.image(
             "https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/silk-chargego-ix/signia-ix_silk-chgo_hearing-aids-out-of-charger_circle_400x400.png",
             caption="Silk Charge&Go IX",
-            use_container_width=True
+            width=300
         )
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group].copy()
