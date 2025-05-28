@@ -49,7 +49,7 @@ def render_sidebar_filters(df):
         elif col.upper() == "PRICE":
             price_bucket = st.sidebar.radio(
                 "Price Range",
-                options=["30,000 – 1,00,000", "1,00,000 – 300,000", "300,000+"],
+                options=["30,000 – 1,00,000", "1,00,000 – 300,000", "300,000+"]
             )
             if price_bucket == "30,000 – 1,00,000":
                 filtered_df = filtered_df[(filtered_df[col] >= 30000) & (filtered_df[col] < 100000)]
@@ -196,26 +196,27 @@ def main():
     # ---- Show image for selected group ----
     if selected_group == "ORION":
         st.image(
-            "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg?rev=c993db8a8cb6470692b613a45f701c47&extension=webp&hash=5F307282D586208C92013BA20A652A59",
+            "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg",
             caption="Orion Charge&Go RIC",
-            use_column_width=True
+            use_container_width=True
         )
     elif selected_group == "PURE":
         st.image(
-            "https://cdn.signia.net/-/media/signia/global/images/products/signia-ax/pure-chargego-ax/pure-charge-go-ax_graphite_standard-charger_1920x1080.jpg?w=1900&rev=4267d686857b4e5ea44e31f288945288&extension=webp&hash=75060B7C704F1EA9AC83983E9E37B5B5",
+            "https://cdn.signia.net/-/media/signia/global/images/products/signia-ax/pure-chargego-ax/pure-charge-go-ax_graphite_standard-charger_1920x1080.jpg",
             caption="Pure Charge&Go AX",
-            use_column_width=True
+            use_container_width=True
         )
     elif selected_group == "SILK":
         st.image(
-            "https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/silk-chargego-ix/signia-ix_silk-chgo_hearing-aids-out-of-charger_circle_400x400.png?w=1900&rev=3711106411534e0a95bc417926f4baff&extension=webp&hash=0C6D82637204A9A70859375B12A2A464",
+            "https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/silk-chargego-ix/signia-ix_silk-chgo_hearing-aids-out-of-charger_circle_400x400.png",
             caption="Silk Charge&Go IX",
-            use_column_width=True
+            use_container_width=True
         )
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group].copy()
-    group_df['Model Number'], group_df['Model Suffix'] = zip(*group_df['Model Name'].map(get_model_number))
-    group_df.sort_values(by=["Model Suffix", "Model Number"], ascending=[False, False], inplace=True)
+    if not group_df.empty:
+        group_df['Model Number'], group_df['Model Suffix'] = zip(*group_df['Model Name'].map(get_model_number))
+        group_df.sort_values(by=["Model Suffix", "Model Number"], ascending=[False, False], inplace=True)
 
     st.markdown(f"## All Models in {selected_group}")
     model_names = group_df["Model Name"].dropna().unique()
