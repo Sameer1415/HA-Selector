@@ -170,7 +170,7 @@ def main():
         st.warning("No products match your filters.")
         return
 
-    filtered_df["Model Group"] = filtered_df["Model Name"].str.extract(r"^(\w+)", expand=False).str.upper()
+    filtered_df["Model Group"] = filtered_df["Model Name"].fillna("").str.extract(r"^(\w+)", expand=False).str.upper()
 
     group_order = ["IX", "AX", "X", "ORION"]
     filtered_df["Group Rank"] = filtered_df["Model Group"].apply(lambda x: group_order.index(x) if x in group_order else len(group_order))
@@ -216,6 +216,12 @@ def main():
         st.image(
             "https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/silk-chargego-ix/signia-ix_silk-chgo_hearing-aids-out-of-charger_circle_400x400.png",
             caption="Silk Charge&Go IX",
+            width=300
+        )
+    elif selected_group == "STYLETTO":
+        st.image(
+            "https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/styletto-ix/styletto-ix_taking-out-of-charger_circle_1000x1000.jpg?w=1900&rev=475793246f23409381e3246ffa4ae02b&extension=webp&hash=610D7361287B6F35A17FD339D07421B2",
+            caption="Styletto IX",
             width=300
         )
 
