@@ -200,30 +200,17 @@ def main():
         selected_group = st.session_state.selected_group
 
     # ---- Show image for selected group ----
-    if selected_group == "ORION":
-        st.image(
-            "https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg",
-            caption="Orion Charge&Go RIC",
-            width=300
-        )
-    elif selected_group == "PURE":
-        st.image(
-            "https://cdn.signia.net/-/media/signia/global/images/products/signia-ax/pure-chargego-ax/pure-charge-go-ax_graphite_standard-charger_1920x1080.jpg",
-            caption="Pure Charge&Go AX",
-            width=300
-        )
-    elif selected_group == "SILK":
-        st.image(
-            "https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/silk-chargego-ix/signia-ix_silk-chgo_hearing-aids-out-of-charger_circle_400x400.png",
-            caption="Silk Charge&Go IX",
-            width=300
-        )
-    elif selected_group == "STYLETTO":
-        st.image(
-            "https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/styletto-ix/styletto-ix_taking-out-of-charger_circle_1000x1000.jpg?w=1900&rev=475793246f23409381e3246ffa4ae02b&extension=webp&hash=610D7361287B6F35A17FD339D07421B2",
-            caption="Styletto IX",
-            width=300
-        )
+    group_images = {
+        "ORION": ("https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg", "Orion Charge&Go RIC"),
+        "PURE": ("https://cdn.signia.net/-/media/signia/global/images/products/signia-ax/pure-chargego-ax/pure-charge-go-ax_graphite_standard-charger_1920x1080.jpg", "Pure Charge&Go AX"),
+        "SILK": ("https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/silk-chargego-ix/signia-ix_silk-chgo_hearing-aids-out-of-charger_circle_400x400.png", "Silk Charge&Go IX"),
+        "STYLETTO": ("https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/styletto-ix/styletto-ix_taking-out-of-charger_circle_1000x1000.jpg?w=1900&rev=475793246f23409381e3246ffa4ae02b&extension=webp&hash=610D7361287B6F35A17FD339D07421B2", "Styletto IX"),
+        "MOTION": ("https://cdn.signia.net/-/media/signia/global/images/products/xperience/motion-sp-x/motion_cng_sp_x_pair_dark_champagne_1920x1080.jpg?w=1900&rev=822053d628c74adeb332a181feba1226&extension=webp&hash=A80732C51303ECE212DAA0F8A544E9C1", "Motion Charge&Go SP X"),
+        "INTUIS": ("https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/intuis-4/intuis-s-4_graphite.png?rev=36cb4ea1efc442a5810a1290448e2828&extension=webp&hash=0A71216A7C97C44BD42A63092DC75345", "Intuis S 4")
+    }
+
+    if selected_group in group_images:
+        st.image(group_images[selected_group][0], caption=group_images[selected_group][1], width=300)
 
     group_df = filtered_df[filtered_df["Model Group"] == selected_group].copy()
     if not group_df.empty:
