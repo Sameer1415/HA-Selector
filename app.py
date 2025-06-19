@@ -6,28 +6,25 @@ import re
 # ---- Page Config and Custom Styles ----
 st.set_page_config(page_title="Titan HA Selector", layout="wide")
 
+# ---- Custom CSS for Styling ----
 st.markdown("""
     <style>
-    /* Global font and background */
     body, .stApp {
         background-color: #f8f9fa;
         font-family: 'Segoe UI', sans-serif;
         color: #333333;
     }
 
-    /* Sidebar styling */
     section[data-testid="stSidebar"] {
         background-color: #ffffff;
         border-right: 1px solid #ddd;
     }
 
-    /* Headers and titles */
     h1, h2, h3 {
         color: #a6192e;
         font-weight: 600;
     }
 
-    /* Buttons */
     button[kind="primary"] {
         background-color: #a6192e !important;
         color: white !important;
@@ -40,7 +37,6 @@ st.markdown("""
         border-color: #a6192e !important;
     }
 
-    /* Model card container */
     .model-card {
         background-color: #ffffff;
         padding: 1rem;
@@ -50,7 +46,6 @@ st.markdown("""
         box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
     }
 
-    /* Dataframe styling */
     .dataframe {
         border-radius: 12px;
         overflow: hidden;
@@ -224,7 +219,8 @@ def get_model_number(model_name):
 
 # ---- Main App ----
 def main():
-    st.image("https://upload.wikimedia.org/wikipedia/en/thumb/3/32/Titan_Company_Logo.svg/320px-Titan_Company_Logo.svg.png", width=120)
+    # ✅ Display Titan Logo from uploaded file
+    st.image("/mnt/data/8679afd6-0ef3-4987-9c20-00b13b6c081f.png", width=120)
     st.title("Titan HA Products")
 
     df = load_data()
