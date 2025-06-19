@@ -3,64 +3,6 @@ import pandas as pd
 import os
 import re
 
-# ---- Page Config and Custom Styles ----
-st.set_page_config(page_title="Titan HA Selector", layout="wide")
-
-# ---- Custom CSS for Styling ----
-st.markdown("""
-    <style>
-    body, .stApp {
-        background-color: #f8f9fa;
-        font-family: 'Segoe UI', sans-serif;
-        color: #333333;
-    }
-
-    section[data-testid="stSidebar"] {
-        background-color: #ffffff;
-        border-right: 1px solid #ddd;
-    }
-
-    h1, h2, h3 {
-        color: #a6192e;
-        font-weight: 600;
-    }
-
-    button[kind="primary"] {
-        background-color: #a6192e !important;
-        color: white !important;
-        border-radius: 8px;
-        font-weight: 600;
-    }
-
-    button[kind="secondary"] {
-        color: #a6192e !important;
-        border-color: #a6192e !important;
-    }
-
-    .model-card {
-        background-color: #ffffff;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .dataframe {
-        border-radius: 12px;
-        overflow: hidden;
-        background-color: white;
-        box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    img {
-        border-radius: 12px;
-        margin-top: 1rem;
-        box-shadow: 0px 1px 8px rgba(0,0,0,0.1);
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 # ---- Load Data ----
 @st.cache_data
 def load_data():
@@ -143,28 +85,25 @@ def render_sidebar_filters(df):
 
     return filtered_df
 
-# ---- Model Card ----
+# ---- Show Individual Model Card ----
 def show_model_card(row):
-    with st.container():
-        st.markdown('<div class="model-card">', unsafe_allow_html=True)
-        st.markdown(f"### 📌 {row['Model Name']}")
-        st.markdown(f"💰 **Price:** ₹{row['Price']:,}")
-        st.markdown(f"🔢 **Channels:** {row.get('Channels', 'N/A')}")
+    st.markdown(f"### 📌 {row['Model Name']}")
+    st.markdown(f"💰 **Price:** ₹{row['Price']:,}")
+    st.markdown(f"🔢 **Channels:** {row.get('Channels', 'N/A')}")
 
-        excluded = {"Model Name", "Price", "Channels", "Quantity", "Degree of loss", "Model Group"}
-        for col in row.index:
-            if col not in excluded:
-                val = row[col]
-                if str(val).upper() == "YES":
-                    icon = "✅"
-                elif str(val).upper() == "NO":
-                    icon = "❌"
-                else:
-                    icon = str(val)
-                st.markdown(f"- **{col}**: {icon}")
-        st.markdown('</div>', unsafe_allow_html=True)
+    excluded = {"Model Name", "Price", "Channels", "Quantity", "Degree of loss", "Model Group"}
+    for col in row.index:
+        if col not in excluded:
+            val = row[col]
+            if str(val).upper() == "YES":
+                icon = "✅"
+            elif str(val).upper() == "NO":
+                icon = "❌"
+            else:
+                icon = str(val)
+            st.markdown(f"- **{col}**: {icon}")
 
-# ---- Comparison Table ----
+# ---- Show comparison table ----
 def show_comparison_table(models_df):
     if models_df.shape[0] < 2:
         return
@@ -174,13 +113,13 @@ def show_comparison_table(models_df):
     feature_descriptions = {
         "Channels": "The number of frequency channels for sound processing.",
         "Price": "Cost of the model in Indian Rupees (₹).",
-        "Android and iOS Streaming": "Direct audio streaming from both Android and Apple devices.",
-        "Bluetooth": "Wireless connectivity for direct streaming and Signia app connection.",
-        "Augmented Focus": "Dual processing for speech and ambient clarity.",
-        "Echo Shield": "Reduces echoes for better listening in noisy environments.",
-        "Tinnitus Manager": "Therapies to help manage tinnitus symptoms.",
-        "HD Music": "Improves sound quality for music.",
-        "Noise Management": "Enhances speech clarity by reducing background noise."
+        "Android and iOS Streaming": "Direct audio streaming from both Android and Apple devices for calls, music, and more.",
+        "Bluetooth": "Wireless connectivity for direct streaming and connection to the Signia app.",
+        "Augmented Focus": "Two processors separate speech for clarity and surrounding sounds for a natural experience in noise.",
+        "Echo Shield": "Reduces echoes and reverberation in challenging acoustic environments for clearer sound.",
+        "Tinnitus Manager": "Offers various sound therapy options, including Notch Therapy, to help manage tinnitus.",
+        "HD Music": "Enhances the sound quality for non-streamed music listening.",
+        "Noise Management": "Advanced technology to reduce background noise and improve speech clarity."
     }
 
     comparison_cols = ["Channels", "Price"]
@@ -210,7 +149,7 @@ def show_comparison_table(models_df):
 
     st.dataframe(comparison_data.rename_axis("Feature").reset_index(), use_container_width=True)
 
-# ---- Extract Model Number for Sorting ----
+# ---- Function to extract model number for sorting ----
 def get_model_number(model_name):
     match = re.search(r'(\d+)(IX|AX|X)', model_name)
     if match:
@@ -219,8 +158,7 @@ def get_model_number(model_name):
 
 # ---- Main App ----
 def main():
-    # ✅ Display Titan Logo from uploaded file
-    st.image("/mnt/data/8679afd6-0ef3-4987-9c20-00b13b6c081f.png", width=120)
+    st.set_page_config(page_title="Titan HA Selector", layout="wide")
     st.title("Titan HA Products")
 
     df = load_data()
@@ -233,6 +171,7 @@ def main():
         return
 
     filtered_df["Model Group"] = filtered_df["Model Name"].fillna("").str.extract(r"^(\w+)", expand=False).str.upper()
+
     group_order = ["IX", "AX", "X", "ORION"]
     filtered_df["Group Rank"] = filtered_df["Model Group"].apply(lambda x: group_order.index(x) if x in group_order else len(group_order))
 
@@ -260,13 +199,14 @@ def main():
         st.session_state.selected_group = model_groups[0]
         selected_group = st.session_state.selected_group
 
+    # ---- Show image for selected group ----
     group_images = {
         "ORION": ("https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/orion-chargego/orion-charge-go_ric_black_1000x1000.jpg", "Orion Charge&Go RIC"),
         "PURE": ("https://cdn.signia.net/-/media/signia/global/images/products/signia-ax/pure-chargego-ax/pure-charge-go-ax_graphite_standard-charger_1920x1080.jpg", "Pure Charge&Go AX"),
         "SILK": ("https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/silk-chargego-ix/signia-ix_silk-chgo_hearing-aids-out-of-charger_circle_400x400.png", "Silk Charge&Go IX"),
-        "STYLETTO": ("https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/styletto-ix/styletto-ix_taking-out-of-charger_circle_1000x1000.jpg", "Styletto IX"),
-        "MOTION": ("https://cdn.signia.net/-/media/signia/global/images/products/xperience/motion-sp-x/motion_cng_sp_x_pair_dark_champagne_1920x1080.jpg", "Motion Charge&Go SP X"),
-        "INTUIS": ("https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/intuis-4/intuis-s-4_graphite.png", "Intuis S 4")
+        "STYLETTO": ("https://cdn.signia.net/-/media/signia/global/images/campaigns/signia-ix/styletto-ix/styletto-ix_taking-out-of-charger_circle_1000x1000.jpg?w=1900&rev=475793246f23409381e3246ffa4ae02b&extension=webp&hash=610D7361287B6F35A17FD339D07421B2", "Styletto IX"),
+        "MOTION": ("https://cdn.signia.net/-/media/signia/global/images/products/xperience/motion-sp-x/motion_cng_sp_x_pair_dark_champagne_1920x1080.jpg?w=1900&rev=822053d628c74adeb332a181feba1226&extension=webp&hash=A80732C51303ECE212DAA0F8A544E9C1", "Motion Charge&Go SP X"),
+        "INTUIS": ("https://cdn.signia.net/-/media/signia/global/images/products/other-hearing-aids/intuis-4/intuis-s-4_graphite.png?rev=36cb4ea1efc442a5810a1290448e2828&extension=webp&hash=0A71216A7C97C44BD42A63092DC75345", "Intuis S 4")
     }
 
     if selected_group in group_images:
@@ -291,4 +231,4 @@ def main():
         show_comparison_table(group_df.drop_duplicates("Model Name").drop(columns=['Group Rank', 'Model Number', 'Model Suffix'], errors='ignore'))
 
 if __name__ == "__main__":
-    main()
+    main()              
